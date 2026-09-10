@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="revision-subject" content="Français">
+<meta name="revision-activity" content="Semaine 2">
 <title>Français – Semaine 2 – Léo</title>
 <style>
 :root{
@@ -171,6 +173,7 @@ button:disabled{opacity:.55;cursor:default;transform:none}
   </section>
 </div>
 
+<script type="module" src="../suivi.js"></script>
 <script>
 const conjugations = {
   etre: {
@@ -215,6 +218,7 @@ let order=[];
 let vi=0;
 let vscore=0;
 let vocabLocked=false;
+let vocabErrors=[];
 
 function shuffle(a){
   a=[...a];
@@ -225,6 +229,19 @@ function shuffle(a){
   return a;
 }
 function normCase(s){return s.trim().toLocaleLowerCase('fr-FR')}
+
+function trackAttempt(payload){
+  if(window.SuiviLeo?.recordAttempt){
+    window.SuiviLeo.recordAttempt(payload).catch(err=>console.warn('Suivi score impossible',err));
+  }else{
+    // Le module Firebase se charge très vite ; si besoin, on retente une seconde plus tard.
+    setTimeout(()=>{
+      if(window.SuiviLeo?.recordAttempt){
+        window.SuiviLeo.recordAttempt(payload).catch(err=>console.warn('Suivi score impossible',err));
+      }
+    },1000);
+  }
+}
 
 function setMainTab(btn){
   document.querySelectorAll('.toolbar .mode-btn').forEach(b=>b.classList.remove('active'));
@@ -293,6 +310,14 @@ function checkConjugation(){
   });
   const res=document.getElementById('conjResult');
   res.textContent = good===6 ? '🏆 6 / 6 — parfait !' : `${good} / 6 — corrige les lignes en rouge puis retente 💪`;
+
+  trackAttempt({
+    activity:`Conjugaison – ${data.title}`,
+    mode:'saisie',
+    score:good,
+    maxScore:6,
+    details:{ verbe:data.title }
+  });
 }
 
 function resetConjugation(){buildConjugation()}
@@ -300,7 +325,7 @@ function resetConjugation(){buildConjugation()}
 function startVocab(mode){
   vocabMode=mode;
   order=shuffle(vocab.map((_,i)=>i));
-  vi=0;vscore=0;vocabLocked=false;
+  vi=0;vscore=0;vocabLocked=false;vocabErrors=[];
   document.getElementById('vocabModeTitle').textContent=mode==='dictation'?'🔊 Dictée audio':'🎯 QCM orthographe';
   document.getElementById('vocabScoreBadge').textContent='20 mots';
   renderVocab();
@@ -369,7 +394,7 @@ function checkDictation(){
   vocabLocked=true;
   const ok=normCase(input.value)===normCase(item.word);
   if(ok){vscore++;input.classList.add('correct')}
-  else{input.classList.add('wrong')}
+  else{input.classList.add('wrong');vocabErrors.push(item.word)}
   document.getElementById('vFeedback').innerHTML=ok
     ? '✅ Bravo !'
     : `❌ La bonne réponse était : <span class="word-correction">${item.word}</span>`;
@@ -383,7 +408,7 @@ function checkQcm(btn,opt,correct){
   const buttons=[...document.querySelectorAll('#qcmAnswers .answer')];
   buttons.forEach(b=>{if(b.textContent===correct)b.classList.add('correct');b.disabled=true});
   if(opt===correct){vscore++;btn.classList.add('correct');document.getElementById('vFeedback').textContent='✅ Oui !'}
-  else{btn.classList.add('wrong');document.getElementById('vFeedback').innerHTML=`❌ La bonne réponse est <b>${correct}</b>.`}
+  else{btn.classList.add('wrong');vocabErrors.push(correct);document.getElementById('vFeedback').innerHTML=`❌ La bonne réponse est <b>${correct}</b>.`}
   document.getElementById('vocabScore').textContent=`${vscore}/${vi+1}`;
   addNextButton();
 }
@@ -410,6 +435,14 @@ function finishVocab(){
     <div class="question">Score : ${vscore} / ${vocab.length}</div>
     <div class="feedback">${pct>=90?'Super solide !':pct>=70?'Très bien ! Encore un petit tour pour fixer les pièges.':'On recommence une série : ça va rentrer petit à petit 💪'}</div>
     <div class="actions"><button class="primary" onclick="startVocab(vocabMode)">🔁 Refaire une série</button></div>`;
+
+  trackAttempt({
+    activity:vocabMode==='dictation' ? 'Mots invariables – dictée audio' : 'Mots invariables – QCM',
+    mode:vocabMode,
+    score:vscore,
+    maxScore:vocab.length,
+    details:{ erreurs:[...vocabErrors] }
+  });
 }
 
 buildConjugation();
