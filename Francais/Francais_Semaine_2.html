@@ -79,6 +79,7 @@ button:disabled{opacity:.55;cursor:default;transform:none}
 .text-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(36,107,253,.10)}
 .text-input.correct{border-color:#24a148;background:#edfff2}
 .text-input.wrong{border-color:var(--red);background:#fff1f0}
+.conj-input:disabled{opacity:1;color:var(--ink);-webkit-text-fill-color:var(--ink);cursor:not-allowed}
 .correction{font-size:14px;font-weight:900;min-width:105px}
 .correction.ok{color:var(--green)}
 .correction.no{color:#b52824}
@@ -144,7 +145,7 @@ button:disabled{opacity:.55;cursor:default;transform:none}
       <div id="verbTitle" class="verb-title">être</div>
       <div id="conjGrid" class="conj-grid"></div>
       <div class="actions">
-        <button class="primary" onclick="checkConjugation()">✅ Valider</button>
+        <button id="conjValidateBtn" class="primary" onclick="checkConjugation()">✅ Valider</button>
         <button onclick="resetConjugation()">↺ Recommencer</button>
       </div>
       <div id="conjResult" class="result"></div>
@@ -213,6 +214,7 @@ const vocab = [
 
 let currentVerb='etre';
 let currentMainTab='conjugaison';
+let conjugationLocked=false;
 let vocabMode='qcm';
 let order=[];
 let vi=0;
@@ -272,6 +274,9 @@ function loadVerb(key){
 }
 
 function buildConjugation(){
+  conjugationLocked=false;
+  const validateBtn=document.getElementById('conjValidateBtn');
+  if(validateBtn) validateBtn.disabled=false;
   const data=conjugations[currentVerb];
   const grid=document.getElementById('conjGrid');
   grid.innerHTML='';
@@ -290,6 +295,8 @@ function buildConjugation(){
 }
 
 function checkConjugation(){
+  if(conjugationLocked) return;
+
   const data=conjugations[currentVerb];
   const inputs=[...document.querySelectorAll('.conj-input')];
   let good=0;
@@ -307,9 +314,17 @@ function checkConjugation(){
       corr.classList.add('no');
       corr.textContent='→ '+data.answers[i];
     }
+    input.disabled=true;
   });
+
+  conjugationLocked=true;
+  const validateBtn=document.getElementById('conjValidateBtn');
+  if(validateBtn) validateBtn.disabled=true;
+
   const res=document.getElementById('conjResult');
-  res.textContent = good===6 ? '🏆 6 / 6 — parfait !' : `${good} / 6 — corrige les lignes en rouge puis retente 💪`;
+  res.textContent = good===6
+    ? '🏆 6 / 6 — parfait ! Clique sur Recommencer pour refaire l’exercice.'
+    : `${good} / 6 — regarde la correction, puis clique sur Recommencer pour retenter 💪`;
 
   trackAttempt({
     activity:`Conjugaison – ${data.title}`,
