@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang='fr'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Mission Pictogrammes – Léo</title>
+<style>
+:root {
+  --bg:#f5f7fb; --card:#fff; --ink:#172033; --muted:#677189;
+  --danger:#e53935; --safe:#198754; --blue:#246bfd; --gold:#ffb703;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:linear-gradient(135deg,#f7f9ff,#eef6ff);color:var(--ink)}
+.wrap{max-width:980px;margin:auto;padding:20px}
+h1{margin:0 0 6px;font-size:clamp(28px,5vw,46px)}
+.sub{color:var(--muted);margin-bottom:18px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+button{border:0;border-radius:14px;padding:11px 15px;font-weight:800;cursor:pointer;background:#e9eefb;color:#172033;font-size:15px}
+button.primary{background:var(--blue);color:#fff}
+.toolbar button.mode-btn.active{background:var(--blue);color:#fff}
+button:hover{transform:translateY(-1px)}
+.panel{background:rgba(255,255,255,.92);border:1px solid #dde5f3;border-radius:22px;padding:18px;box-shadow:0 12px 34px rgba(41,61,102,.08)}
+.hidden{display:none!important}
+.scorebar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px;font-weight:800}
+.progress{height:10px;background:#e8edf7;border-radius:999px;overflow:hidden;flex:1}
+.progress > div{height:100%;width:0;background:var(--blue);transition:.25s}
+.study-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.study-card{background:#fff;border:1px solid #e0e6f0;border-radius:18px;padding:14px;cursor:pointer;transition:.15s}
+.study-card:hover{box-shadow:0 8px 20px rgba(42,63,102,.10)}
+.study-card img{display:block;width:145px;height:145px;object-fit:contain;margin:0 auto 8px;border-radius:10px;background:#fff}
+.study-card h3{margin:4px 0;text-align:center}
+.reveal{display:none;border-top:1px dashed #d6dce8;margin-top:10px;padding-top:10px;font-size:14px;line-height:1.35}
+.study-card.open .reveal{display:block}
+.tag{display:inline-block;border-radius:999px;padding:3px 8px;font-weight:800;font-size:12px;margin-right:5px}
+.tag.d{background:#ffe2e1;color:#a9221f} .tag.p{background:#dff3ff;color:#12608a}
+.quiz{text-align:center}
+.quiz img{width:min(260px,70vw);height:230px;object-fit:contain;border-radius:16px;background:#fff;border:1px solid #e1e7f0;margin:8px auto 12px;padding:8px}
+.question{font-size:22px;font-weight:900;margin:6px 0 15px}
+.answers{display:grid;gap:10px;max-width:720px;margin:auto}
+.answer{padding:14px;border-radius:14px;background:#fff;border:2px solid #e2e7f0;text-align:left;font-size:16px}
+.answer.correct{border-color:#24a148;background:#ebfff0}
+.answer.wrong{border-color:#e53935;background:#fff0ef}
+.feedback{min-height:30px;font-weight:900;margin:12px 0}
+.big{font-size:40px}
+.match-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.match-card{min-height:120px;background:white;border:2px solid #e0e6f0;border-radius:16px;padding:8px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;cursor:pointer}
+.match-card img{width:110px;height:100px;object-fit:contain;background:#fff}
+.match-card.selected{border-color:var(--blue);box-shadow:0 0 0 3px rgba(36,107,253,.14)}
+.match-card.matched{opacity:.28;pointer-events:none}
+.badge{background:#fff4cc;color:#705200;border-radius:999px;padding:5px 10px;font-weight:900}
+.footer{text-align:center;color:var(--muted);font-size:13px;margin:14px}
+
+.home-link{
+  display:inline-flex;align-items:center;gap:8px;
+  text-decoration:none;color:#172033;background:#fff;
+  border:1px solid #dbe3f0;border-radius:999px;
+  padding:9px 13px;font-weight:800;font-size:14px;
+  box-shadow:0 6px 18px rgba(41,61,102,.08);
+  margin-bottom:14px;
+}
+.home-link:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(41,61,102,.12)}
+
+@media(max-width:600px){
+  .match-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .study-grid{grid-template-columns:minmax(0,1fr)}
+  .scorebar{flex-wrap:wrap}
+  .match-card{min-width:0;overflow-wrap:anywhere}
+  .match-card img{max-width:100%}
+}
+</style>
+</head>
+<body>
+<div class='wrap'>
+  <a class='home-link' href='../index.html'>← 🏠 Retour à l’accueil</a>
+  <h1>🧪 Mission Pictogrammes</h1>
+  <div class='sub'>Objectif : reconnaître les 9 symboles + savoir dire le <b>danger</b> et la <b>prudence</b>.</div>
+
+  <div class='toolbar'>
+    <button class='mode-btn active' onclick="setActiveTab(this); showMode('study')">👀 Révision flash</button>
+    <button class='mode-btn' onclick="setActiveTab(this); startQuiz('name')">⚡ Nom du pictogramme</button>
+    <button class='mode-btn' onclick="setActiveTab(this); startQuiz('danger')">🚨 Quel danger ?</button>
+    <button class='mode-btn' onclick="setActiveTab(this); startQuiz('prudence')">🛡️ Quelle prudence ?</button>
+    <button class='mode-btn' onclick="setActiveTab(this); startMatch()">🧩 Memory express</button>
+  </div>
+
+  <section id='study' class='panel'>
+    <div class='scorebar'>
+      <span>Révision flash</span>
+      <span class='badge'>Clique sur une carte pour révéler</span>
+    </div>
+    <div class='study-grid' id='studyGrid'></div>
+  </section>
+
+  <section id='quizPanel' class='panel hidden'>
+    <div class='scorebar'>
+      <span id='quizTitle'>Quiz</span>
+      <div class='progress'><div id='bar'></div></div>
+      <span id='scoreTxt'>0/0</span>
+    </div>
+    <div class='quiz'>
+      <img id='qImg' alt='pictogramme'>
+      <div id='qText' class='question'></div>
+      <div id='answers' class='answers'></div>
+      <div id='feedback' class='feedback'></div>
+      <button id='nextBtn' class='primary hidden' onclick='nextQuestion()'>Question suivante ➜</button>
+    </div>
+  </section>
+
+  <section id='matchPanel' class='panel hidden'>
+    <div class='scorebar'>
+      <span>🧩 Memory express</span>
+      <span id='matchScore' class='badge' aria-live='polite'>0 paire</span>
+    </div>
+    <div style='color:var(--muted);margin-bottom:12px'>Associe chaque pictogramme à son nom.</div>
+    <div id='matchGrid' class='match-grid'></div>
+  </section>
+
+  
+</div>
+
+<script>
+const cards = [{"name": "Explosif", "danger": "Ce produit explose lors d’un choc ou s’il est exposé à une source de chaleur.", "prudence": "Ventiler, éliminer toute source de chaleur et écarter les substances pouvant former des combinaisons explosives.", "img": "images/explosif.png"}, {"name": "Inflammable", "danger": "Ce produit brûle facilement.", "prudence": "Éloigner des flammes et des sources de chaleur.", "img": "images/inflammable.png"}, {"name": "Comburant", "danger": "Ce produit facilite la combustion.", "prudence": "Éloigner des flammes et des sources de chaleur.", "img": "images/comburant.png"}, {"name": "Gaz sous pression", "danger": "Ce produit risque d’exploser sous l’effet de la chaleur.", "prudence": "Éloigner des sources de chaleur.", "img": "images/gaz_sous_pression.png"}, {"name": "Corrosif", "danger": "Ce produit attaque les tissus vivants ainsi que les matériaux.", "prudence": "Éviter tout contact avec les yeux, la peau et les vêtements.", "img": "images/corrosif.png"}, {"name": "Toxique", "danger": "Ce produit empoisonne rapidement, même à faible dose, et peut provoquer la mort.", "prudence": "Utiliser des protections adéquates.", "img": "images/toxique.png"}, {"name": "Nocif, irritant", "danger": "Ce produit nuit à la santé ou irrite.", "prudence": "Utiliser des protections adéquates.", "img": "images/nocif_irritant.png"}, {"name": "Danger pour la santé", "danger": "Ce produit nuit gravement à la santé.", "prudence": "Utiliser des protections adéquates.", "img": "images/danger_sante.png"}, {"name": "Dangereux pour l’environnement", "danger": "Ce produit nuit à l’environnement.", "prudence": "Ne pas rejeter dans la nature.", "img": "images/danger_environnement.png"}];
+let quiz = [], qi = 0, score = 0, quizType = 'name', locked = false;
+
+function shuffle(a) {
+  a=[...a];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+
+function setActiveTab(button) {
+  document.querySelectorAll('.toolbar .mode-btn').forEach(b => b.classList.remove('active'));
+  button.classList.add('active');
+}
+
+function showMode(id) {
+  document.getElementById('study').classList.add('hidden');
+  document.getElementById('quizPanel').classList.add('hidden');
+  document.getElementById('matchPanel').classList.add('hidden');
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function buildStudy() {
+  const g=document.getElementById('studyGrid');
+  g.innerHTML='';
+  cards.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='study-card';
+    d.tabIndex=0;
+    d.setAttribute('role','button');
+    d.setAttribute('aria-expanded','false');
+    d.onclick=()=>{
+      const open=d.classList.toggle('open');
+      d.setAttribute('aria-expanded',String(open));
+    };
+    d.onkeydown=e=>{
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();d.click()}
+    };
+    d.innerHTML=`<img src="${c.img}" alt="${c.name}"><h3>${c.name}</h3>
+      <div class="reveal">
+        <p><span class="tag d">DANGER</span>${c.danger}</p>
+        <p><span class="tag p">PRUDENCE</span>${c.prudence}</p>
+      </div>`;
+    g.appendChild(d);
+  });
+}
+
+function startQuiz(type) {
+  quizType=type; qi=0; score=0; locked=false; quiz=shuffle(cards);
+  document.getElementById('quizTitle').textContent =
+    type==='name'?'⚡ Nom du pictogramme':type==='danger'?'🚨 Quel danger ?':'🛡️ Quelle prudence ?';
+  document.getElementById('qImg').style.display='block';
+  showMode('quizPanel'); renderQuestion();
+}
+
+function makeOptions(correct, type) {
+  const pool = cards.map(c=>c[type]);
+  const unique=[...new Set(pool.filter(x=>x!==correct))];
+  return shuffle([correct, ...shuffle(unique).slice(0,3)]);
+}
+
+function renderQuestion() {
+  if(qi>=quiz.length) return finishQuiz();
+  locked=false;
+  const c=quiz[qi];
+  document.getElementById('qImg').src=c.img;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('nextBtn').classList.add('hidden');
+  document.getElementById('answers').innerHTML='';
+  document.getElementById('bar').style.width=((qi)/quiz.length*100)+'%';
+  document.getElementById('scoreTxt').textContent=`${score}/${qi}`;
+
+  let prompt, correct, options;
+  if(quizType==='name') {
+    prompt='Quel est ce pictogramme ?';
+    correct=c.name;
+    options=shuffle([c.name,...shuffle(cards.filter(x=>x.name!==c.name).map(x=>x.name)).slice(0,3)]);
+  } else {
+    prompt=quizType==='danger'?'Quel danger correspond à ce pictogramme ?':'Quelle précaution correspond à ce pictogramme ?';
+    correct=c[quizType];
+    options=makeOptions(correct,quizType);
+  }
+  document.getElementById('qText').textContent=prompt;
+
+  options.forEach(opt=>{
+    const b=document.createElement('button');
+    b.className='answer'; b.textContent=opt;
+    b.onclick=()=>answer(b,opt,correct);
+    document.getElementById('answers').appendChild(b);
+  });
+}
+
+function answer(btn,opt,correct) {
+  if(locked)return; locked=true;
+  [...document.querySelectorAll('.answer')].forEach(b=>{
+    if(b.textContent===correct)b.classList.add('correct');
+    b.disabled=true;
+  });
+  if(opt===correct) {
+    score++; btn.classList.add('correct');
+    document.getElementById('feedback').textContent='✅ Oui !';
+  } else {
+    btn.classList.add('wrong');
+    document.getElementById('feedback').textContent='❌ Presque — regarde la bonne réponse.';
+  }
+  document.getElementById('scoreTxt').textContent=`${score}/${qi+1}`;
+  document.getElementById('nextBtn').classList.remove('hidden');
+}
+
+function nextQuestion() {qi++; renderQuestion();}
+
+function finishQuiz() {
+  document.getElementById('bar').style.width='100%';
+  const pct=Math.round(score/quiz.length*100);
+  document.getElementById('qImg').removeAttribute('src');
+  document.getElementById('qImg').style.display='none';
+  document.getElementById('qText').innerHTML=`<span class='big'>${pct>=80?'🏆':pct>=60?'👏':'🎯'}</span><br>Score : ${score} / ${quiz.length}`;
+  document.getElementById('answers').innerHTML='';
+  document.getElementById('feedback').textContent=pct>=80?'Très solide !':pct>=60?'Encore un petit tour et c’est bon.':'Reviens 3 minutes sur les cartes puis retente.';
+  document.getElementById('nextBtn').classList.add('hidden');
+  const r=document.createElement('button');
+  r.className='primary'; r.textContent='🔁 Rejouer ce quiz';
+  r.onclick=()=>{document.getElementById('qImg').style.display='block';startQuiz(quizType)};
+  document.getElementById('answers').appendChild(r);
+}
+
+let first=null, pairs=0, matchLocked=false, matchTimer=null;
+function startMatch() {
+  clearTimeout(matchTimer);
+  pairs=0; first=null; matchLocked=false; showMode('matchPanel');
+  document.getElementById('matchScore').textContent='0 paire';
+  const items=[];
+  cards.forEach((c,i)=>{
+    items.push({kind:'img',id:i,content:c.img});
+    items.push({kind:'name',id:i,content:c.name});
+  });
+  const grid=document.getElementById('matchGrid'); grid.innerHTML='';
+  shuffle(items).forEach(item=>{
+    const el=document.createElement('button'); el.type='button'; el.className='match-card'; el.dataset.id=item.id;
+    el.innerHTML=item.kind==='img'?`<img src="${item.content}" alt="Pictogramme à associer">`:`<span>${item.content}</span>`;
+    el.onclick=()=>pickMatch(el,item);
+    grid.appendChild(el);
+  });
+}
+
+function pickMatch(el,item) {
+  if(matchLocked||el.classList.contains('matched')||el===first?.el)return;
+  if(!first) {
+    first={el,item}; el.classList.add('selected'); return;
+  }
+  if(first.item.id===item.id && first.item.kind!==item.kind) {
+    first.el.classList.remove('selected'); first.el.classList.add('matched'); el.classList.add('matched');
+    pairs++; document.getElementById('matchScore').textContent=`${pairs} paire${pairs>1?'s':''}`;
+    first=null;
+    if(pairs===cards.length) document.getElementById('matchScore').textContent='🏆 9 paires — Bravo !';
+  } else {
+    el.classList.add('selected');
+    const old=first; first=null; matchLocked=true;
+    matchTimer=setTimeout(()=>{
+      old.el.classList.remove('selected');
+      el.classList.remove('selected');
+      matchLocked=false;
+    },450);
+  }
+}
+
+buildStudy();
+</script>
+</body>
+</html>

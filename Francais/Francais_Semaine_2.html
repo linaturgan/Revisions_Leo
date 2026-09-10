@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Français – Semaine 2 – Léo</title>
+<style>
+:root{
+  --ink:#172033;
+  --muted:#677189;
+  --blue:#246bfd;
+  --pink:#e35d7a;
+  --green:#198754;
+  --red:#e53935;
+  --gold:#ffb703;
+  --line:#dde5f3;
+  --soft:#f5f7fb;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 8%, #ffe9ef 0 8%, transparent 28%),
+    radial-gradient(circle at 90% 12%, #dff3ff 0 9%, transparent 29%),
+    linear-gradient(135deg,#fff9fb,#f3f7ff);
+  min-height:100vh;
+}
+.wrap{max-width:980px;margin:auto;padding:20px}
+.home-link{
+  display:inline-flex;align-items:center;gap:8px;
+  text-decoration:none;color:var(--ink);background:#fff;
+  border:1px solid #dbe3f0;border-radius:999px;
+  padding:9px 13px;font-weight:800;font-size:14px;
+  box-shadow:0 6px 18px rgba(41,61,102,.08);
+  margin-bottom:14px;
+}
+.home-link:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(41,61,102,.12)}
+h1{margin:0 0 6px;font-size:clamp(28px,5vw,46px)}
+.sub{color:var(--muted);margin-bottom:18px;line-height:1.45}
+.toolbar,.subtoolbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+button{
+  border:0;border-radius:14px;padding:11px 15px;font-weight:800;cursor:pointer;
+  background:#e9eefb;color:var(--ink);font-size:15px;transition:.15s;
+}
+button:hover{transform:translateY(-1px)}
+button.primary,.toolbar .mode-btn.active,.subtoolbar .sub-btn.active{background:var(--blue);color:#fff}
+button.pink{background:var(--pink);color:#fff}
+button:disabled{opacity:.55;cursor:default;transform:none}
+.panel{
+  background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:22px;
+  padding:18px;box-shadow:0 12px 34px rgba(41,61,102,.08)
+}
+.hidden{display:none!important}
+.scorebar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px;font-weight:800}
+.lesson-title{font-size:clamp(23px,3.2vw,30px);font-weight:950;line-height:1.15;letter-spacing:-.3px}
+.lesson-title.conj-title{color:#c92f5e}
+.lesson-title.vocab-title{color:#1667d9}
+.badge{background:#fff0f4;color:#9a3650;border-radius:999px;padding:5px 10px;font-weight:900;font-size:13px}
+.progress{height:10px;background:#e8edf7;border-radius:999px;overflow:hidden;flex:1;min-width:80px}
+.progress>div{height:100%;width:0;background:var(--blue);transition:.25s}
+.helper{color:var(--muted);line-height:1.45;margin:0 0 16px}
+
+/* CONJUGAISON */
+.verb-switch{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.verb-switch button.active{background:var(--pink);color:#fff}
+.conj-card{max-width:720px;margin:auto;background:#fff;border:1px solid #e1e7f0;border-radius:18px;padding:16px}
+.verb-title{font-size:27px;font-weight:900;text-align:center;margin:0 0 14px}
+.conj-grid{display:grid;gap:10px}
+.conj-row{display:grid;grid-template-columns:145px 1fr auto;gap:10px;align-items:center}
+.subject{font-weight:900;text-align:right;font-size:18px}
+.text-input{
+  width:100%;border:2px solid #dfe5ef;border-radius:13px;padding:12px 13px;
+  font-size:18px;font-weight:700;color:var(--ink);background:#fff;outline:none;
+}
+.text-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(36,107,253,.10)}
+.text-input.correct{border-color:#24a148;background:#edfff2}
+.text-input.wrong{border-color:var(--red);background:#fff1f0}
+.correction{font-size:14px;font-weight:900;min-width:105px}
+.correction.ok{color:var(--green)}
+.correction.no{color:#b52824}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.result{text-align:center;font-weight:900;min-height:28px;margin-top:12px}
+
+/* VOCABULAIRE */
+.vocab-box{max-width:760px;margin:auto;text-align:center}
+.audio-button{
+  width:112px;height:112px;border-radius:50%;font-size:47px;background:#eef4ff;
+  border:3px solid #dbe7ff;display:grid;place-items:center;margin:8px auto 16px;
+}
+.audio-button:hover{background:#e4eeff}
+.question{font-size:22px;font-weight:900;margin:8px 0 15px}
+.big-input{max-width:480px;margin:auto;font-size:24px;text-align:center;padding:14px}
+.answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;max-width:650px;margin:auto}
+.answer{
+  padding:15px;border-radius:14px;background:#fff;border:2px solid #e2e7f0;
+  text-align:center;font-size:18px;font-weight:800
+}
+.answer.correct{border-color:#24a148;background:#ebfff0}
+.answer.wrong{border-color:var(--red);background:#fff0ef}
+.feedback{min-height:30px;font-weight:900;margin:12px 0}
+.word-correction{font-size:24px;font-weight:900;color:var(--green)}
+.end-emoji{font-size:44px}
+.note{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.4}
+
+@media(max-width:650px){
+  .wrap{padding:14px}
+  .panel{padding:14px}
+  .scorebar{flex-wrap:wrap}
+  .conj-row{grid-template-columns:92px 1fr}
+  .subject{font-size:15px}
+  .correction{grid-column:2;text-align:left;min-width:0;margin-top:-5px}
+  .answers{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home-link" href="../index.html">← 🏠 Retour à l’accueil</a>
+  <h1>📖 Français – Semaine 2</h1>
+  <div class="sub">Deux petites missions : réviser les auxiliaires à l’imparfait et mémoriser les 20 mots invariables de la semaine.</div>
+
+  <div class="toolbar">
+    <button class="mode-btn active" onclick="setMainTab(this); showMain('conjugaison')">✍️ Conjugaisons</button>
+    <button class="mode-btn" onclick="setMainTab(this); showMain('vocabulaire')">🔤 Vocabulaire</button>
+  </div>
+
+  <section id="conjugaison" class="panel">
+    <div class="scorebar">
+      <span class="lesson-title conj-title">✍️ Les auxiliaires à l’imparfait</span>
+      <span class="badge">Complète les 6 lignes</span>
+    </div>
+    <p class="helper">Choisis un verbe, complète chaque forme puis clique sur <b>Valider</b>. Les bonnes réponses passent en vert et les erreurs sont corrigées juste à côté.</p>
+
+    <div class="verb-switch">
+      <button id="btnEtre" class="active" onclick="loadVerb('etre')">être</button>
+      <button id="btnAvoir" onclick="loadVerb('avoir')">avoir</button>
+    </div>
+
+    <div class="conj-card">
+      <div id="verbTitle" class="verb-title">être</div>
+      <div id="conjGrid" class="conj-grid"></div>
+      <div class="actions">
+        <button class="primary" onclick="checkConjugation()">✅ Valider</button>
+        <button onclick="resetConjugation()">↺ Recommencer</button>
+      </div>
+      <div id="conjResult" class="result"></div>
+    </div>
+  </section>
+
+  <section id="vocabulaire" class="panel hidden">
+    <div class="scorebar">
+      <span class="lesson-title vocab-title">🔤 Les mots invariables</span>
+      <span id="vocabScoreBadge" class="badge">20 mots</span>
+    </div>
+    <p class="helper">Tu peux t’entraîner de deux façons : <b>QCM</b> pour repérer la bonne orthographe parmi quatre propositions, ou <b>dictée audio</b> pour écrire le mot entendu.</p>
+
+    <div class="subtoolbar">
+      <button class="sub-btn active" onclick="setSubTab(this); startVocab('qcm')">🎯 QCM orthographe</button>
+      <button class="sub-btn" onclick="setSubTab(this); startVocab('dictation')">🔊 Dictée audio</button>
+    </div>
+
+    <div class="scorebar">
+      <span id="vocabModeTitle">🎯 QCM orthographe</span>
+      <div class="progress"><div id="vocabBar"></div></div>
+      <span id="vocabScore">0/0</span>
+    </div>
+
+    <div id="vocabBox" class="vocab-box"></div>
+  </section>
+</div>
+
+<script>
+const conjugations = {
+  etre: {
+    title: 'être',
+    subjects: ["j’", 'tu', 'il / elle / on', 'nous', 'vous', 'ils / elles'],
+    answers: ['étais', 'étais', 'était', 'étions', 'étiez', 'étaient']
+  },
+  avoir: {
+    title: 'avoir',
+    subjects: ["j’", 'tu', 'il / elle / on', 'nous', 'vous', 'ils / elles'],
+    answers: ['avais', 'avais', 'avait', 'avions', 'aviez', 'avaient']
+  }
+};
+
+const vocab = [
+  {word:'Ailleurs', choices:['Ailleurs','Ailleur','Aillieurs','Ailleures']},
+  {word:'Ainsi', choices:['Ainsi','Ainsit','Einssi','Ainssi']},
+  {word:'Alors', choices:['Alors','Alor','Allors','Alore']},
+  {word:'Après', choices:['Après','Aprés','Aprè','Apprès']},
+  {word:'Assez', choices:['Assez','Assé','Asser','Asez']},
+  {word:'Aussi', choices:['Aussi','Ausi','Aussit','Ossi']},
+  {word:'Autant', choices:['Autant','Autemps','Autan','Auttant']},
+  {word:'Autour', choices:['Autour','Autours','Autourt','Auttour']},
+  {word:'Avant', choices:['Avant','Avan','Avent','Avvant']},
+  {word:'Avec', choices:['Avec','Aveque','Avek','Avéc']},
+  {word:'Bien', choices:['Bien','Biens','Bient','Bian']},
+  {word:'Bientôt', choices:['Bientôt','Bientot','BientôtS','Bien tôt']},
+  {word:'Car', choices:['Car','Cars','Kar','Carr']},
+  {word:'Ce', choices:['Ce','Cee','Cce','Cé']},
+  {word:'Cela', choices:['Cela','Cella','Sela','Celà']},
+  {word:'Cependant', choices:['Cependant','Cepandant','Ce pendant','Ceppendant']},
+  {word:'Chez', choices:['Chez','Ché','Ches','Chès']},
+  {word:'Comme', choices:['Comme','Come','Commes','Commme']},
+  {word:'Comment', choices:['Comment','Coment','Commant','Comments']},
+  {word:'Contre', choices:['Contre','Contrre','Comtre','Contres']}
+];
+
+let currentVerb='etre';
+let currentMainTab='conjugaison';
+let vocabMode='qcm';
+let order=[];
+let vi=0;
+let vscore=0;
+let vocabLocked=false;
+
+function shuffle(a){
+  a=[...a];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function normCase(s){return s.trim().toLocaleLowerCase('fr-FR')}
+
+function setMainTab(btn){
+  document.querySelectorAll('.toolbar .mode-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function showMain(id){
+  const returningToConjugation = id==='conjugaison' && currentMainTab!=='conjugaison';
+  document.getElementById('conjugaison').classList.add('hidden');
+  document.getElementById('vocabulaire').classList.add('hidden');
+  document.getElementById(id).classList.remove('hidden');
+
+  if(returningToConjugation) resetConjugation();
+  if(id==='vocabulaire' && order.length===0) startVocab('qcm');
+
+  currentMainTab=id;
+}
+function setSubTab(btn){
+  document.querySelectorAll('.subtoolbar .sub-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function loadVerb(key){
+  currentVerb=key;
+  document.getElementById('btnEtre').classList.toggle('active',key==='etre');
+  document.getElementById('btnAvoir').classList.toggle('active',key==='avoir');
+  document.getElementById('verbTitle').textContent=conjugations[key].title;
+  buildConjugation();
+}
+
+function buildConjugation(){
+  const data=conjugations[currentVerb];
+  const grid=document.getElementById('conjGrid');
+  grid.innerHTML='';
+  data.subjects.forEach((subject,i)=>{
+    const row=document.createElement('div');
+    row.className='conj-row';
+    row.innerHTML=`
+      <div class="subject">${subject}</div>
+      <input class="text-input conj-input" data-index="${i}" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" aria-label="${subject} ${data.title}">
+      <div class="correction" id="corr${i}"></div>`;
+    grid.appendChild(row);
+  });
+  document.getElementById('conjResult').textContent='';
+  const first=grid.querySelector('input');
+  if(first) setTimeout(()=>first.focus(),30);
+}
+
+function checkConjugation(){
+  const data=conjugations[currentVerb];
+  const inputs=[...document.querySelectorAll('.conj-input')];
+  let good=0;
+  inputs.forEach((input,i)=>{
+    const corr=document.getElementById('corr'+i);
+    input.classList.remove('correct','wrong');
+    corr.className='correction';
+    if(normCase(input.value)===normCase(data.answers[i])){
+      good++;
+      input.classList.add('correct');
+      corr.classList.add('ok');
+      corr.textContent='✅ Correct';
+    }else{
+      input.classList.add('wrong');
+      corr.classList.add('no');
+      corr.textContent='→ '+data.answers[i];
+    }
+  });
+  const res=document.getElementById('conjResult');
+  res.textContent = good===6 ? '🏆 6 / 6 — parfait !' : `${good} / 6 — corrige les lignes en rouge puis retente 💪`;
+}
+
+function resetConjugation(){buildConjugation()}
+
+function startVocab(mode){
+  vocabMode=mode;
+  order=shuffle(vocab.map((_,i)=>i));
+  vi=0;vscore=0;vocabLocked=false;
+  document.getElementById('vocabModeTitle').textContent=mode==='dictation'?'🔊 Dictée audio':'🎯 QCM orthographe';
+  document.getElementById('vocabScoreBadge').textContent='20 mots';
+  renderVocab();
+}
+
+function updateVocabHeader(){
+  document.getElementById('vocabBar').style.width=(vi/vocab.length*100)+'%';
+  document.getElementById('vocabScore').textContent=`${vscore}/${vi}`;
+}
+
+function renderVocab(){
+  updateVocabHeader();
+  if(vi>=order.length){finishVocab();return}
+  vocabLocked=false;
+  const item=vocab[order[vi]];
+  const box=document.getElementById('vocabBox');
+  if(vocabMode==='dictation'){
+    box.innerHTML=`
+      <div class="question">Écoute le mot, puis écris-le.</div>
+      <button class="audio-button" onclick="speakCurrent()" aria-label="Écouter le mot">🔊</button>
+      <input id="dictInput" class="text-input big-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="Écris le mot ici…">
+      <div class="actions"><button class="primary" onclick="checkDictation()">✅ Valider</button></div>
+      <div id="vFeedback" class="feedback"></div>
+      <div class="note">💡 Tu peux réécouter le mot autant de fois que nécessaire.</div>`;
+    const input=document.getElementById('dictInput');
+    input.addEventListener('keydown',e=>{if(e.key==='Enter') checkDictation()});
+    setTimeout(()=>input.focus(),80);
+  }else{
+    const options=shuffle(item.choices);
+    box.innerHTML=`
+      <div class="question">Quelle est la bonne orthographe ?</div>
+      <div class="answers" id="qcmAnswers"></div>
+      <div id="vFeedback" class="feedback"></div>`;
+    const a=document.getElementById('qcmAnswers');
+    options.forEach(opt=>{
+      const b=document.createElement('button');
+      b.className='answer';
+      b.textContent=opt;
+      b.onclick=()=>checkQcm(b,opt,item.word);
+      a.appendChild(b);
+    });
+  }
+}
+
+function speakCurrent(){
+  const item=vocab[order[vi]];
+  if(!item)return;
+  if(!('speechSynthesis' in window)){
+    const f=document.getElementById('vFeedback');
+    if(f) f.textContent='🔇 La lecture vocale n’est pas disponible sur ce navigateur.';
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(item.word);
+  u.lang='fr-FR';
+  u.rate=0.72;
+  u.pitch=1;
+  window.speechSynthesis.speak(u);
+}
+
+function checkDictation(){
+  if(vocabLocked)return;
+  const item=vocab[order[vi]];
+  const input=document.getElementById('dictInput');
+  if(!input.value.trim())return;
+  vocabLocked=true;
+  const ok=normCase(input.value)===normCase(item.word);
+  if(ok){vscore++;input.classList.add('correct')}
+  else{input.classList.add('wrong')}
+  document.getElementById('vFeedback').innerHTML=ok
+    ? '✅ Bravo !'
+    : `❌ La bonne réponse était : <span class="word-correction">${item.word}</span>`;
+  document.getElementById('vocabScore').textContent=`${vscore}/${vi+1}`;
+  addNextButton();
+}
+
+function checkQcm(btn,opt,correct){
+  if(vocabLocked)return;
+  vocabLocked=true;
+  const buttons=[...document.querySelectorAll('#qcmAnswers .answer')];
+  buttons.forEach(b=>{if(b.textContent===correct)b.classList.add('correct');b.disabled=true});
+  if(opt===correct){vscore++;btn.classList.add('correct');document.getElementById('vFeedback').textContent='✅ Oui !'}
+  else{btn.classList.add('wrong');document.getElementById('vFeedback').innerHTML=`❌ La bonne réponse est <b>${correct}</b>.`}
+  document.getElementById('vocabScore').textContent=`${vscore}/${vi+1}`;
+  addNextButton();
+}
+
+function addNextButton(){
+  const box=document.getElementById('vocabBox');
+  const actions=document.createElement('div');
+  actions.className='actions';
+  const next=document.createElement('button');
+  next.className='primary';
+  next.textContent=vi===order.length-1?'Voir mon score 🏁':'Mot suivant ➜';
+  next.onclick=()=>{vi++;renderVocab()};
+  actions.appendChild(next);
+  box.appendChild(actions);
+}
+
+function finishVocab(){
+  document.getElementById('vocabBar').style.width='100%';
+  const pct=Math.round(vscore/vocab.length*100);
+  document.getElementById('vocabScore').textContent=`${vscore}/${vocab.length}`;
+  const emoji=pct>=90?'🏆':pct>=70?'👏':'🎯';
+  document.getElementById('vocabBox').innerHTML=`
+    <div class="end-emoji">${emoji}</div>
+    <div class="question">Score : ${vscore} / ${vocab.length}</div>
+    <div class="feedback">${pct>=90?'Super solide !':pct>=70?'Très bien ! Encore un petit tour pour fixer les pièges.':'On recommence une série : ça va rentrer petit à petit 💪'}</div>
+    <div class="actions"><button class="primary" onclick="startVocab(vocabMode)">🔁 Refaire une série</button></div>`;
+}
+
+buildConjugation();
+</script>
+</body>
+</html>
