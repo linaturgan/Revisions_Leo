@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau de bord – Révisions Léo</title>
+<style>
+:root{
+  --ink:#172033; --muted:#68738a; --line:#dde5f2; --blue:#246bfd;
+  --green:#198754; --red:#c93632; --soft:#f5f7fb; --card:#ffffff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 5%,#e8f5ff 0 7%,transparent 25%),
+    radial-gradient(circle at 92% 5%,#ffeaf0 0 7%,transparent 25%),
+    linear-gradient(135deg,#f7faff,#faf7ff);
+  min-height:100vh;
+}
+.wrap{max-width:1180px;margin:auto;padding:22px}
+.topbar{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+h1{margin:0;font-size:clamp(28px,5vw,46px)}
+.subtitle{color:var(--muted);margin-top:5px}
+button,.btn{
+  border:0;border-radius:13px;padding:10px 14px;font-weight:850;cursor:pointer;
+  background:#e9eefb;color:var(--ink);font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:7px;
+}
+button.primary{background:var(--blue);color:white}
+button.danger{background:#fff0f0;color:#9e2926}
+.card{
+  background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:20px;
+  padding:18px;box-shadow:0 10px 28px rgba(40,58,96,.08);margin-bottom:16px
+}
+.login{max-width:620px;margin:70px auto;text-align:center;padding:28px}
+.login h2{font-size:28px;margin:0 0 8px}.login p{color:var(--muted);line-height:1.5}
+.google-btn{background:white;border:1px solid #d8deea;box-shadow:0 4px 14px rgba(20,30,60,.08);margin:auto}
+.status{padding:12px 14px;border-radius:14px;margin:12px 0;font-weight:750;line-height:1.45}
+.status.info{background:#eef5ff;color:#204f9e}
+.status.ok{background:#edfff3;color:#116b38}
+.status.err{background:#fff0ef;color:#9f2b27}
+.uidbox{
+  background:#f6f8fc;border:1px solid #dce3ef;border-radius:14px;padding:12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;margin:10px 0
+}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:16px}
+.metric{background:white;border:1px solid var(--line);border-radius:18px;padding:16px}
+.metric .value{font-size:30px;font-weight:950;margin-bottom:4px}.metric .label{color:var(--muted);font-size:13px;font-weight:800}
+.two{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+.section-title{font-size:20px;font-weight:950;margin:0 0 13px}
+.user-row{
+  display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
+  padding:12px 0;border-bottom:1px solid #edf0f5
+}
+.user-row:last-child{border-bottom:0}
+.name{font-weight:900}.small{font-size:13px;color:var(--muted);margin-top:3px}
+.pill{background:#eef3ff;color:#3157a8;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900}
+.attempt{
+  padding:12px 0;border-bottom:1px solid #edf0f5;display:grid;grid-template-columns:1fr auto;gap:12px
+}
+.attempt:last-child{border-bottom:0}
+.score{font-weight:950;font-size:18px}
+.muted{color:var(--muted)}
+.empty{color:var(--muted);text-align:center;padding:24px}
+.hidden{display:none!important}
+@media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
+@media(max-width:520px){.wrap{padding:14px}.grid{grid-template-columns:1fr 1fr}.metric .value{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <h1>📊 Suivi des révisions</h1>
+      <div class="subtitle">Tableau de bord administrateur</div>
+    </div>
+    <div id="adminActions" class="hidden">
+      <a class="btn" href="./index.html">🏠 Site</a>
+      <button id="refreshBtn">↻ Actualiser</button>
+      <button id="logoutBtn" class="danger">Déconnexion</button>
+    </div>
+  </div>
+
+  <section id="loginCard" class="card login">
+    <h2>🔐 Accès administrateur</h2>
+    <p>Connecte-toi avec ton compte Google. Cette connexion est séparée du profil élève utilisé sur le site.</p>
+    <button id="googleBtn" class="google-btn">🌈 Se connecter avec Google</button>
+    <div id="loginStatus"></div>
+  </section>
+
+  <section id="bootstrapCard" class="card hidden">
+    <h2 class="section-title">✅ Connexion Google réussie</h2>
+    <div id="adminIdentity" class="small"></div>
+    <p>Ton compte est bien reconnu. Pour lui donner l'accès aux données de tous les élèves, il faut maintenant ajouter <b>cet UID</b> aux règles Firestore :</p>
+    <div id="uidValue" class="uidbox"></div>
+    <button id="copyUid" class="primary">📋 Copier l’UID</button>
+    <div class="status info">
+      Pour l'instant, Firestore refuse normalement l'accès global. C'est voulu : on verrouille d'abord l'administrateur, puis le tableau de bord se débloquera.
+    </div>
+  </section>
+
+  <main id="dashboard" class="hidden">
+    <div class="grid">
+      <div class="metric"><div id="mUsers" class="value">0</div><div class="label">UTILISATEURS</div></div>
+      <div class="metric"><div id="mSessions" class="value">0</div><div class="label">SÉANCES</div></div>
+      <div class="metric"><div id="mTime" class="value">0 min</div><div class="label">TEMPS ACTIF</div></div>
+      <div class="metric"><div id="mAvg" class="value">—</div><div class="label">SCORE MOYEN</div></div>
+    </div>
+
+    <div class="two">
+      <section class="card">
+        <h2 class="section-title">👥 Utilisateurs</h2>
+        <div id="usersList"></div>
+      </section>
+      <section class="card">
+        <h2 class="section-title">🕒 Dernières tentatives</h2>
+        <div id="attemptsList"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, onAuthStateChanged,
+  signInWithPopup, signOut, browserLocalPersistence, setPersistence
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {
+  getFirestore, collection, getDocs
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBSgvc4uZ1N1tiejwSRxlxjAwcjxuWu8UY",
+  authDomain: "revisions-leo.firebaseapp.com",
+  projectId: "revisions-leo",
+  storageBucket: "revisions-leo.firebasestorage.app",
+  messagingSenderId: "336939937853",
+  appId: "1:336939937853:web:d64757ca4067f380c7fa54",
+  measurementId: "G-8XHV324RVE"
+};
+
+// Application Firebase séparée : la connexion Google admin ne remplace pas
+// le compte anonyme utilisé par les exercices sur ce même navigateur.
+const adminApp = initializeApp(firebaseConfig, "adminDashboard");
+const auth = getAuth(adminApp);
+const db = getFirestore(adminApp);
+const provider = new GoogleAuthProvider();
+
+const $ = id => document.getElementById(id);
+const loginCard = $("loginCard"), bootstrapCard = $("bootstrapCard"), dashboard = $("dashboard");
+
+function fmtDate(value){
+  try{
+    const d = value?.toDate ? value.toDate() : new Date(value);
+    return new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"short"}).format(d);
+  }catch{return "—"}
+}
+function fmtDuration(sec){
+  sec = Number(sec)||0;
+  if(sec < 60) return `${Math.round(sec)} s`;
+  const m = Math.round(sec/60);
+  if(m < 60) return `${m} min`;
+  const h = Math.floor(m/60), r = m%60;
+  return `${h} h ${r ? r+" min" : ""}`.trim();
+}
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+
+async function loadData(){
+  try{
+    const [pSnap,sSnap,aSnap] = await Promise.all([
+      getDocs(collection(db,"profiles")),
+      getDocs(collection(db,"sessions")),
+      getDocs(collection(db,"attempts"))
+    ]);
+
+    const profiles = pSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const sessions = sSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const attempts = aSnap.docs.map(d=>({id:d.id,...d.data()}));
+
+    bootstrapCard.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+
+    $("mUsers").textContent = profiles.length;
+    $("mSessions").textContent = sessions.length;
+    $("mTime").textContent = fmtDuration(sessions.reduce((a,s)=>a+(Number(s.activeSeconds)||0),0));
+    const scored = attempts.filter(a=>Number.isFinite(Number(a.percentage)));
+    $("mAvg").textContent = scored.length ? Math.round(scored.reduce((x,a)=>x+Number(a.percentage),0)/scored.length)+" %" : "—";
+
+    profiles.sort((a,b)=>{
+      const ad=a.lastSeenAt?.toMillis?.()||0, bd=b.lastSeenAt?.toMillis?.()||0;
+      return bd-ad;
+    });
+
+    const byUid = new Map();
+    sessions.forEach(s=>{
+      const x = byUid.get(s.uid) || {sessions:0,time:0};
+      x.sessions++; x.time += Number(s.activeSeconds)||0; byUid.set(s.uid,x);
+    });
+
+    $("usersList").innerHTML = profiles.length ? profiles.map(p=>{
+      const stats=byUid.get(p.id)||{sessions:0,time:0};
+      return `<div class="user-row">
+        <div>
+          <div class="name">${esc(p.name || "Sans nom")}</div>
+          <div class="small">Dernière activité : ${fmtDate(p.lastSeenAt)} · ${stats.sessions} séance(s) · ${fmtDuration(stats.time)}</div>
+        </div>
+        <span class="pill">${esc(p.role || "eleve")}</span>
+      </div>`;
+    }).join("") : `<div class="empty">Aucun profil pour le moment.</div>`;
+
+    attempts.sort((a,b)=>{
+      const ad=a.createdAt?.toMillis?.()||0, bd=b.createdAt?.toMillis?.()||0;
+      return bd-ad;
+    });
+    $("attemptsList").innerHTML = attempts.length ? attempts.slice(0,20).map(a=>`
+      <div class="attempt">
+        <div>
+          <div class="name">${esc(a.name || "Utilisateur")} · ${esc(a.activity || "")}</div>
+          <div class="small">${esc(a.subject || "")} · ${fmtDate(a.createdAt)}</div>
+        </div>
+        <div class="score">${Number(a.score)||0}/${Number(a.maxScore)||0}</div>
+      </div>`).join("") : `<div class="empty">Aucune tentative pour le moment.</div>`;
+
+  }catch(err){
+    console.error(err);
+    if(err?.code === "permission-denied"){
+      dashboard.classList.add("hidden");
+      bootstrapCard.classList.remove("hidden");
+    }else{
+      $("loginStatus").innerHTML = `<div class="status err">Erreur : ${esc(err.message || err)}</div>`;
+    }
+  }
+}
+
+await setPersistence(auth, browserLocalPersistence);
+
+$("googleBtn").addEventListener("click", async ()=>{
+  $("loginStatus").innerHTML = `<div class="status info">Connexion en cours…</div>`;
+  try{ await signInWithPopup(auth, provider); }
+  catch(err){ $("loginStatus").innerHTML = `<div class="status err">${esc(err.message || err)}</div>`; }
+});
+$("logoutBtn").addEventListener("click", ()=>signOut(auth));
+$("refreshBtn").addEventListener("click", loadData);
+$("copyUid").addEventListener("click", async ()=>{
+  const value = $("uidValue").textContent.trim();
+  await navigator.clipboard.writeText(value);
+  $("copyUid").textContent = "✅ UID copié";
+  setTimeout(()=>$("copyUid").textContent="📋 Copier l’UID",1600);
+});
+
+onAuthStateChanged(auth, async user=>{
+  if(!user){
+    loginCard.classList.remove("hidden");
+    bootstrapCard.classList.add("hidden");
+    dashboard.classList.add("hidden");
+    $("adminActions").classList.add("hidden");
+    $("loginStatus").innerHTML = "";
+    return;
+  }
+
+  loginCard.classList.add("hidden");
+  $("adminActions").classList.remove("hidden");
+  $("uidValue").textContent = user.uid;
+  $("adminIdentity").textContent = `${user.displayName || "Compte Google"}${user.email ? " · "+user.email : ""}`;
+  await loadData();
+});
+</script>
+</body>
+</html>
