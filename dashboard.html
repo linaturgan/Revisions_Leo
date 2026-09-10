@@ -7,7 +7,7 @@
 <style>
 :root{
   --ink:#172033; --muted:#68738a; --line:#dde5f2; --blue:#246bfd;
-  --green:#198754; --red:#c93632; --soft:#f5f7fb; --card:#ffffff;
+  --green:#198754; --red:#c93632; --pink:#d94e78; --soft:#f5f7fb;
 }
 *{box-sizing:border-box}
 body{
@@ -15,27 +15,25 @@ body{
   font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   color:var(--ink);
   background:
-    radial-gradient(circle at 12% 5%,#e8f5ff 0 7%,transparent 25%),
-    radial-gradient(circle at 92% 5%,#ffeaf0 0 7%,transparent 25%),
+    radial-gradient(circle at 10% 4%,#e8f5ff 0 7%,transparent 24%),
+    radial-gradient(circle at 92% 5%,#ffeaf0 0 7%,transparent 24%),
     linear-gradient(135deg,#f7faff,#faf7ff);
   min-height:100vh;
 }
-.wrap{max-width:1180px;margin:auto;padding:22px}
+.wrap{max-width:1200px;margin:auto;padding:22px}
 .topbar{display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
 h1{margin:0;font-size:clamp(28px,5vw,46px)}
 .subtitle{color:var(--muted);margin-top:5px}
-button,.btn{
-  border:0;border-radius:13px;padding:10px 14px;font-weight:850;cursor:pointer;
-  background:#e9eefb;color:var(--ink);font-size:14px;text-decoration:none;
-  display:inline-flex;align-items:center;gap:7px;
+button,.btn,select{
+  border:0;border-radius:13px;padding:10px 14px;font-weight:850;
+  background:#e9eefb;color:var(--ink);font-size:14px
 }
+button,.btn{cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
 button.primary{background:var(--blue);color:white}
+button.test{background:#fff3d6;color:#7a5200}
+button.student{background:#eaf8ef;color:#126a3a}
 button.danger{background:#fff0f0;color:#9e2926}
-.live-pill{
-  display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border-radius:999px;
-  background:#edfff3;color:#116b38;font-size:13px;font-weight:900;border:1px solid #cdeed9;
-}
-.live-dot{width:9px;height:9px;border-radius:50%;background:#19a75c;box-shadow:0 0 0 4px rgba(25,167,92,.12)}
+select{border:1px solid #dbe3f0;background:#fff;min-width:190px}
 .card{
   background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:20px;
   padding:18px;box-shadow:0 10px 28px rgba(40,58,96,.08);margin-bottom:16px
@@ -45,33 +43,46 @@ button.danger{background:#fff0f0;color:#9e2926}
 .google-btn{background:white;border:1px solid #d8deea;box-shadow:0 4px 14px rgba(20,30,60,.08);margin:auto}
 .status{padding:12px 14px;border-radius:14px;margin:12px 0;font-weight:750;line-height:1.45}
 .status.info{background:#eef5ff;color:#204f9e}
-.status.ok{background:#edfff3;color:#116b38}
 .status.err{background:#fff0ef;color:#9f2b27}
-.uidbox{
-  background:#f6f8fc;border:1px solid #dce3ef;border-radius:14px;padding:12px;
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;margin:10px 0
+.hidden{display:none!important}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.switch{
+  display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:13px;
+  background:#fff;border:1px solid var(--line);font-size:13px;font-weight:850
 }
+.switch input{width:18px;height:18px}
+.live-pill{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border-radius:999px;
+  background:#edfff3;color:#116b38;font-size:13px;font-weight:900;border:1px solid #cdeed9
+}
+.live-dot{width:9px;height:9px;border-radius:50%;background:#19a75c;box-shadow:0 0 0 4px rgba(25,167,92,.12)}
+.user-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.user-title{font-size:26px;font-weight:950}
+.small{font-size:13px;color:var(--muted);margin-top:4px}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900;background:#eef3ff;color:#3157a8}
+.pill.active{background:#e9fff0;color:#11743e}
+.pill.test{background:#fff3d6;color:#7a5200}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:16px}
 .metric{background:white;border:1px solid var(--line);border-radius:18px;padding:16px}
 .metric .value{font-size:30px;font-weight:950;margin-bottom:4px}.metric .label{color:var(--muted);font-size:13px;font-weight:800}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .section-title{font-size:20px;font-weight:950;margin:0 0 13px}
-.user-row,.session-row{
-  display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
-  padding:12px 0;border-bottom:1px solid #edf0f5
+.subject-row,.attempt,.session-row{
+  padding:12px 0;border-bottom:1px solid #edf0f5;
+  display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center
 }
-.user-row:last-child,.session-row:last-child{border-bottom:0}
-.name{font-weight:900}.small{font-size:13px;color:var(--muted);margin-top:3px}
-.pill{background:#eef3ff;color:#3157a8;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900}
-.pill.active{background:#e9fff0;color:#11743e}
-.attempt{
-  padding:12px 0;border-bottom:1px solid #edf0f5;display:grid;grid-template-columns:1fr auto;gap:12px
-}
-.attempt:last-child{border-bottom:0}
+.subject-row:last-child,.attempt:last-child,.session-row:last-child{border-bottom:0}
+.name{font-weight:900}
 .score{font-weight:950;font-size:18px}
-.muted{color:var(--muted)}
+.badwords{display:flex;gap:7px;flex-wrap:wrap}
+.word{background:#fff0f3;color:#a43152;border-radius:999px;padding:5px 9px;font-weight:850;font-size:13px}
 .empty{color:var(--muted);text-align:center;padding:24px}
-.hidden{display:none!important}
+.all-users{display:grid;gap:8px}
+.user-mini{
+  display:flex;justify-content:space-between;gap:10px;align-items:center;
+  padding:10px 12px;border:1px solid #e7ebf2;border-radius:14px;background:#fafbfe;cursor:pointer
+}
+.user-mini:hover{background:#fff}.user-mini.active{border-color:#a9bfff;background:#f4f7ff}
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
 @media(max-width:520px){.wrap{padding:14px}.grid{grid-template-columns:1fr 1fr}.metric .value{font-size:24px}}
 </style>
@@ -92,40 +103,62 @@ button.danger{background:#fff0f0;color:#9e2926}
 
   <section id="loginCard" class="card login">
     <h2>🔐 Accès administrateur</h2>
-    <p>Connecte-toi avec ton compte Google. Cette connexion est séparée du profil élève utilisé sur le site.</p>
+    <p>Connecte-toi avec ton compte Google.</p>
     <button id="googleBtn" class="google-btn">🌈 Se connecter avec Google</button>
     <div id="loginStatus"></div>
   </section>
 
-  <section id="bootstrapCard" class="card hidden">
-    <h2 class="section-title">✅ Connexion Google réussie</h2>
-    <div id="adminIdentity" class="small"></div>
-    <p>Ton compte est reconnu mais Firestore ne lui donne pas encore l'accès global.</p>
-    <div id="uidValue" class="uidbox"></div>
-  </section>
-
   <main id="dashboard" class="hidden">
+    <div class="controls">
+      <select id="userSelect" aria-label="Choisir un utilisateur"></select>
+      <label class="switch"><input type="checkbox" id="hideTests" checked> Masquer les profils test</label>
+    </div>
+
+    <section class="card">
+      <div class="user-head">
+        <div>
+          <div id="userName" class="user-title">—</div>
+          <div id="userMeta" class="small"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span id="activeBadge" class="pill">—</span>
+          <button id="toggleRoleBtn" class="test hidden">🧪 Marquer comme test</button>
+        </div>
+      </div>
+    </section>
+
     <div class="grid">
-      <div class="metric"><div id="mUsers" class="value">0</div><div class="label">UTILISATEURS</div></div>
       <div class="metric"><div id="mSessions" class="value">0</div><div class="label">SÉANCES</div></div>
       <div class="metric"><div id="mTime" class="value">0 min</div><div class="label">TEMPS ACTIF</div></div>
       <div class="metric"><div id="mAvg" class="value">—</div><div class="label">SCORE MOYEN</div></div>
+      <div class="metric"><div id="mAttempts" class="value">0</div><div class="label">TENTATIVES</div></div>
     </div>
 
     <div class="two">
       <section class="card">
-        <h2 class="section-title">👥 Utilisateurs</h2>
-        <div id="usersList"></div>
+        <h2 class="section-title">📚 Par matière</h2>
+        <div id="subjectsList"></div>
       </section>
+      <section class="card">
+        <h2 class="section-title">⚠️ À retravailler</h2>
+        <div id="errorsList"></div>
+      </section>
+    </div>
+
+    <div class="two">
       <section class="card">
         <h2 class="section-title">🕒 Dernières séances</h2>
         <div id="sessionsList"></div>
       </section>
+      <section class="card">
+        <h2 class="section-title">🎯 Derniers scores</h2>
+        <div id="attemptsList"></div>
+      </section>
     </div>
 
     <section class="card">
-      <h2 class="section-title">🎯 Derniers scores</h2>
-      <div id="attemptsList"></div>
+      <h2 class="section-title">👥 Tous les utilisateurs</h2>
+      <div id="allUsers" class="all-users"></div>
     </section>
   </main>
 </div>
@@ -137,7 +170,7 @@ import {
   signInWithPopup, signOut, browserLocalPersistence, setPersistence
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
-  getFirestore, collection, onSnapshot
+  getFirestore, collection, onSnapshot, doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -154,168 +187,160 @@ const adminApp = initializeApp(firebaseConfig, "adminDashboard");
 const auth = getAuth(adminApp);
 const db = getFirestore(adminApp);
 const provider = new GoogleAuthProvider();
-
 const $ = id => document.getElementById(id);
-const loginCard = $("loginCard"), bootstrapCard = $("bootstrapCard"), dashboard = $("dashboard");
 
-let profiles = [], sessions = [], attempts = [];
-let unsubs = [];
+let profiles=[], sessions=[], attempts=[], selectedUid=null, unsubs=[];
 
-function tsMs(value){
-  if(!value) return 0;
-  if(typeof value.toMillis === "function") return value.toMillis();
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function tsMs(v){
+  if(!v) return 0;
+  if(typeof v.toMillis==="function") return v.toMillis();
+  const d=new Date(v); return Number.isNaN(d.getTime())?0:d.getTime();
 }
-function fmtDate(value){
-  const ms = tsMs(value);
-  if(!ms) return "—";
+function fmtDate(v){
+  const ms=tsMs(v); if(!ms)return"—";
   return new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"short"}).format(new Date(ms));
 }
 function fmtDuration(sec){
-  sec = Number(sec)||0;
-  if(sec < 60) return `${Math.round(sec)} s`;
-  const m = Math.round(sec/60);
-  if(m < 60) return `${m} min`;
-  const h = Math.floor(m/60), r = m%60;
-  return `${h} h ${r ? r+" min" : ""}`.trim();
+  sec=Number(sec)||0;
+  if(sec<60)return`${Math.round(sec)} s`;
+  const m=Math.round(sec/60); if(m<60)return`${m} min`;
+  const h=Math.floor(m/60),r=m%60; return `${h} h${r?" "+r+" min":""}`;
 }
-function esc(s){
-  return String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-}
-function isActiveSession(s){
-  const ms = tsMs(s.lastSeenAt);
-  return ms > 0 && (Date.now() - ms) < 35000;
-}
+function isActive(s){const ms=tsMs(s.lastSeenAt);return ms>0&&(Date.now()-ms)<35000}
+function visibleProfiles(){return profiles.filter(p=>!$("hideTests").checked||p.role!=="test")}
+function getSelectedProfile(){return profiles.find(p=>p.id===selectedUid)||null}
 
-function renderData(){
-  bootstrapCard.classList.add("hidden");
-  dashboard.classList.remove("hidden");
-
-  $("mUsers").textContent = profiles.length;
-  $("mSessions").textContent = sessions.length;
-  $("mTime").textContent = fmtDuration(sessions.reduce((a,s)=>a+(Number(s.activeSeconds)||0),0));
-  const scored = attempts.filter(a=>Number.isFinite(Number(a.percentage)));
-  $("mAvg").textContent = scored.length
-    ? Math.round(scored.reduce((x,a)=>x+Number(a.percentage),0)/scored.length)+" %"
-    : "—";
-
-  const byUid = new Map();
-  sessions.forEach(s=>{
-    const x = byUid.get(s.uid) || {sessions:0,time:0,last:0,active:false,lastActivity:""};
-    x.sessions++;
-    x.time += Number(s.activeSeconds)||0;
-    const last = tsMs(s.lastSeenAt);
-    if(last > x.last){ x.last = last; x.lastActivity = s.activity || s.pageActivity || ""; }
-    if(isActiveSession(s)) x.active = true;
-    byUid.set(s.uid,x);
-  });
-
-  const pSorted=[...profiles].sort((a,b)=>{
-    const aa=byUid.get(a.id)?.last || tsMs(a.lastSeenAt);
-    const bb=byUid.get(b.id)?.last || tsMs(b.lastSeenAt);
-    return bb-aa;
-  });
-
-  $("usersList").innerHTML = pSorted.length ? pSorted.map(p=>{
-    const stats=byUid.get(p.id)||{sessions:0,time:0,last:tsMs(p.lastSeenAt),active:false,lastActivity:""};
-    return `<div class="user-row">
-      <div>
-        <div class="name">${esc(p.name || "Sans nom")}</div>
-        <div class="small">
-          ${stats.active ? "🟢 En train de réviser" : "Dernière activité : "+fmtDate(stats.last || p.lastSeenAt)}
-          ${stats.lastActivity ? " · "+esc(stats.lastActivity) : ""}
-          · ${stats.sessions} séance(s) · ${fmtDuration(stats.time)}
-        </div>
-      </div>
-      <span class="pill ${stats.active ? "active" : ""}">${stats.active ? "EN COURS" : esc(p.role || "eleve")}</span>
-    </div>`;
-  }).join("") : `<div class="empty">Aucun profil pour le moment.</div>`;
-
-  const sSorted=[...sessions].sort((a,b)=>tsMs(b.startedAt)-tsMs(a.startedAt));
-  $("sessionsList").innerHTML = sSorted.length ? sSorted.slice(0,15).map(s=>`
-    <div class="session-row">
-      <div>
-        <div class="name">${esc(s.name || "Utilisateur")} · ${esc(s.activity || "Révisions")}</div>
-        <div class="small">${esc(s.subject || "")} · ${fmtDate(s.startedAt)} · ${fmtDuration(s.activeSeconds)}</div>
-      </div>
-      <span class="pill ${isActiveSession(s) ? "active" : ""}">${isActiveSession(s) ? "🟢 EN COURS" : "terminée"}</span>
-    </div>`).join("") : `<div class="empty">Aucune séance pour le moment.</div>`;
-
-  const aSorted=[...attempts].sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));
-  $("attemptsList").innerHTML = aSorted.length ? aSorted.slice(0,30).map(a=>`
-    <div class="attempt">
-      <div>
-        <div class="name">${esc(a.name || "Utilisateur")} · ${esc(a.activity || "")}</div>
-        <div class="small">${esc(a.subject || "")} · ${fmtDate(a.createdAt)}</div>
-      </div>
-      <div class="score">${Number(a.score)||0}/${Number(a.maxScore)||0}</div>
-    </div>`).join("") : `<div class="empty">Aucun score pour le moment.</div>`;
+function syncUserSelect(){
+  const list=visibleProfiles().sort((a,b)=>(a.name||"").localeCompare(b.name||"","fr"));
+  if(!selectedUid || !list.some(p=>p.id===selectedUid)) selectedUid=list[0]?.id||null;
+  $("userSelect").innerHTML=list.map(p=>`<option value="${p.id}" ${p.id===selectedUid?"selected":""}>${esc(p.name||"Sans nom")}${p.role==="test"?" [test]":""}</option>`).join("");
 }
 
-function stopRealtime(){
-  unsubs.forEach(u=>{try{u()}catch{}});
-  unsubs=[];
-}
+function render(){
+  if($("dashboard").classList.contains("hidden")) return;
+  syncUserSelect();
 
-function startRealtime(){
-  stopRealtime();
-
-  const handleError = err=>{
-    console.error(err);
-    if(err?.code === "permission-denied"){
-      dashboard.classList.add("hidden");
-      bootstrapCard.classList.remove("hidden");
-    }else{
-      $("loginStatus").innerHTML = `<div class="status err">Erreur : ${esc(err.message || err)}</div>`;
-    }
-  };
-
-  unsubs.push(onSnapshot(collection(db,"profiles"), snap=>{
-    profiles=snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderData();
-  }, handleError));
-
-  unsubs.push(onSnapshot(collection(db,"sessions"), snap=>{
-    sessions=snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderData();
-  }, handleError));
-
-  unsubs.push(onSnapshot(collection(db,"attempts"), snap=>{
-    attempts=snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderData();
-  }, handleError));
-}
-
-await setPersistence(auth, browserLocalPersistence);
-
-$("googleBtn").addEventListener("click", async ()=>{
-  $("loginStatus").innerHTML = `<div class="status info">Connexion en cours…</div>`;
-  try{ await signInWithPopup(auth, provider); }
-  catch(err){ $("loginStatus").innerHTML = `<div class="status err">${esc(err.message || err)}</div>`; }
-});
-$("logoutBtn").addEventListener("click", ()=>signOut(auth));
-
-onAuthStateChanged(auth, user=>{
-  if(!user){
-    stopRealtime();
-    loginCard.classList.remove("hidden");
-    bootstrapCard.classList.add("hidden");
-    dashboard.classList.add("hidden");
-    $("adminActions").classList.add("hidden");
-    $("loginStatus").innerHTML = "";
+  const p=getSelectedProfile();
+  if(!p){
+    $("userName").textContent="Aucun utilisateur";
+    ["mSessions","mAttempts"].forEach(id=>$(id).textContent="0");
+    $("mTime").textContent="0 min"; $("mAvg").textContent="—";
+    $("subjectsList").innerHTML=$("errorsList").innerHTML=$("sessionsList").innerHTML=$("attemptsList").innerHTML='<div class="empty">Aucune donnée.</div>';
+    renderAllUsers();
     return;
   }
 
-  loginCard.classList.add("hidden");
+  const us=sessions.filter(s=>s.uid===p.id);
+  const ua=attempts.filter(a=>a.uid===p.id);
+  const active=us.some(isActive);
+  const lastS=[...us].sort((a,b)=>tsMs(b.lastSeenAt)-tsMs(a.lastSeenAt))[0];
+
+  $("userName").textContent=p.name||"Sans nom";
+  $("userMeta").textContent=`Dernière activité : ${fmtDate(lastS?.lastSeenAt||p.lastSeenAt)} · rôle : ${p.role||"eleve"}`;
+  $("activeBadge").textContent=active?"🟢 En train de réviser":"Hors ligne";
+  $("activeBadge").className="pill "+(active?"active":"")+(p.role==="test"?" test":"");
+
+  const roleBtn=$("toggleRoleBtn");
+  roleBtn.classList.remove("hidden");
+  if(p.role==="test"){
+    roleBtn.textContent="🎓 Marquer comme élève";
+    roleBtn.className="student";
+  }else{
+    roleBtn.textContent="🧪 Marquer comme test";
+    roleBtn.className="test";
+  }
+
+  $("mSessions").textContent=us.length;
+  $("mAttempts").textContent=ua.length;
+  $("mTime").textContent=fmtDuration(us.reduce((x,s)=>x+(Number(s.activeSeconds)||0),0));
+  const perc=ua.map(a=>Number(a.percentage)).filter(Number.isFinite);
+  $("mAvg").textContent=perc.length?Math.round(perc.reduce((a,b)=>a+b,0)/perc.length)+" %":"—";
+
+  const subj={};
+  ua.forEach(a=>{
+    const key=a.subject||"Autre";
+    if(!subj[key])subj[key]={n:0,sum:0};
+    if(Number.isFinite(Number(a.percentage))){subj[key].n++;subj[key].sum+=Number(a.percentage)}
+  });
+  $("subjectsList").innerHTML=Object.keys(subj).length?Object.entries(subj).map(([k,v])=>`
+    <div class="subject-row"><div><div class="name">${esc(k)}</div><div class="small">${v.n} tentative(s)</div></div><div class="score">${v.n?Math.round(v.sum/v.n)+" %":"—"}</div></div>
+  `).join(""):'<div class="empty">Pas encore de score.</div>';
+
+  const counts=new Map();
+  ua.forEach(a=>{
+    const errs=a.details?.erreurs;
+    if(Array.isArray(errs)) errs.forEach(e=>counts.set(e,(counts.get(e)||0)+1));
+  });
+  const top=[...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12);
+  $("errorsList").innerHTML=top.length?`<div class="badwords">${top.map(([w,n])=>`<span class="word">${esc(w)}${n>1?" ×"+n:""}</span>`).join("")}</div>`:'<div class="empty">Rien à signaler pour le moment 👌</div>';
+
+  const ss=[...us].sort((a,b)=>tsMs(b.startedAt)-tsMs(a.startedAt)).slice(0,12);
+  $("sessionsList").innerHTML=ss.length?ss.map(s=>`
+    <div class="session-row">
+      <div><div class="name">${esc(s.activity||"Révisions")}</div><div class="small">${esc(s.subject||"")} · ${fmtDate(s.startedAt)} · ${fmtDuration(s.activeSeconds)}</div></div>
+      <span class="pill ${isActive(s)?"active":""}">${isActive(s)?"🟢 EN COURS":"terminée"}</span>
+    </div>`).join(""):'<div class="empty">Aucune séance.</div>';
+
+  const aa=[...ua].sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt)).slice(0,15);
+  $("attemptsList").innerHTML=aa.length?aa.map(a=>`
+    <div class="attempt"><div><div class="name">${esc(a.activity||"")}</div><div class="small">${esc(a.subject||"")} · ${fmtDate(a.createdAt)}</div></div><div class="score">${Number(a.score)||0}/${Number(a.maxScore)||0}</div></div>
+  `).join(""):'<div class="empty">Aucun score.</div>';
+
+  renderAllUsers();
+}
+
+function renderAllUsers(){
+  const list=visibleProfiles().sort((a,b)=>tsMs(b.lastSeenAt)-tsMs(a.lastSeenAt));
+  $("allUsers").innerHTML=list.length?list.map(p=>{
+    const us=sessions.filter(s=>s.uid===p.id), active=us.some(isActive);
+    return `<div class="user-mini ${p.id===selectedUid?"active":""}" data-uid="${p.id}">
+      <div><div class="name">${esc(p.name||"Sans nom")}</div><div class="small">${active?"🟢 En cours":"Dernière activité : "+fmtDate(p.lastSeenAt)}</div></div>
+      <span class="pill ${p.role==="test"?"test":""}">${esc(p.role||"eleve")}</span>
+    </div>`;
+  }).join(""):'<div class="empty">Aucun utilisateur.</div>';
+
+  document.querySelectorAll(".user-mini").forEach(el=>el.onclick=()=>{
+    selectedUid=el.dataset.uid; $("userSelect").value=selectedUid; render();
+  });
+}
+
+function startRealtime(){
+  unsubs.forEach(u=>u());unsubs=[];
+  const onErr=e=>{console.error(e);$("loginStatus").innerHTML=`<div class="status err">${esc(e.message||e)}</div>`};
+  unsubs.push(onSnapshot(collection(db,"profiles"),s=>{profiles=s.docs.map(d=>({id:d.id,...d.data()}));render()},onErr));
+  unsubs.push(onSnapshot(collection(db,"sessions"),s=>{sessions=s.docs.map(d=>({id:d.id,...d.data()}));render()},onErr));
+  unsubs.push(onSnapshot(collection(db,"attempts"),s=>{attempts=s.docs.map(d=>({id:d.id,...d.data()}));render()},onErr));
+}
+
+await setPersistence(auth,browserLocalPersistence);
+$("googleBtn").onclick=async()=>{try{await signInWithPopup(auth,provider)}catch(e){$("loginStatus").innerHTML=`<div class="status err">${esc(e.message||e)}</div>`}};
+$("logoutBtn").onclick=()=>signOut(auth);
+$("userSelect").onchange=e=>{selectedUid=e.target.value;render()};
+$("hideTests").onchange=()=>render();
+
+$("toggleRoleBtn").onclick=async()=>{
+  const p=getSelectedProfile(); if(!p)return;
+  const newRole=p.role==="test"?"eleve":"test";
+  try{await updateDoc(doc(db,"profiles",p.id),{role:newRole})}
+  catch(e){alert("Impossible de modifier le rôle : "+(e.message||e))}
+};
+
+onAuthStateChanged(auth,user=>{
+  if(!user){
+    unsubs.forEach(u=>u());unsubs=[];
+    $("loginCard").classList.remove("hidden");
+    $("dashboard").classList.add("hidden");
+    $("adminActions").classList.add("hidden");
+    return;
+  }
+  $("loginCard").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
   $("adminActions").classList.remove("hidden");
-  $("uidValue").textContent = user.uid;
-  $("adminIdentity").textContent = `${user.displayName || "Compte Google"}${user.email ? " · "+user.email : ""}`;
   startRealtime();
 });
 
-// Rafraîchit seulement les libellés "EN COURS" entre deux écritures Firestore.
-setInterval(()=>{ if(!dashboard.classList.contains("hidden")) renderData(); },5000);
+setInterval(()=>render(),5000);
 </script>
 </body>
 </html>
