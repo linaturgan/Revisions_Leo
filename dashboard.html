@@ -26,10 +26,16 @@ h1{margin:0;font-size:clamp(28px,5vw,46px)}
 .subtitle{color:var(--muted);margin-top:5px}
 button,.btn{
   border:0;border-radius:13px;padding:10px 14px;font-weight:850;cursor:pointer;
-  background:#e9eefb;color:var(--ink);font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:7px;
+  background:#e9eefb;color:var(--ink);font-size:14px;text-decoration:none;
+  display:inline-flex;align-items:center;gap:7px;
 }
 button.primary{background:var(--blue);color:white}
 button.danger{background:#fff0f0;color:#9e2926}
+.live-pill{
+  display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border-radius:999px;
+  background:#edfff3;color:#116b38;font-size:13px;font-weight:900;border:1px solid #cdeed9;
+}
+.live-dot{width:9px;height:9px;border-radius:50%;background:#19a75c;box-shadow:0 0 0 4px rgba(25,167,92,.12)}
 .card{
   background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:20px;
   padding:18px;box-shadow:0 10px 28px rgba(40,58,96,.08);margin-bottom:16px
@@ -48,15 +54,16 @@ button.danger{background:#fff0f0;color:#9e2926}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:16px}
 .metric{background:white;border:1px solid var(--line);border-radius:18px;padding:16px}
 .metric .value{font-size:30px;font-weight:950;margin-bottom:4px}.metric .label{color:var(--muted);font-size:13px;font-weight:800}
-.two{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .section-title{font-size:20px;font-weight:950;margin:0 0 13px}
-.user-row{
+.user-row,.session-row{
   display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
   padding:12px 0;border-bottom:1px solid #edf0f5
 }
-.user-row:last-child{border-bottom:0}
+.user-row:last-child,.session-row:last-child{border-bottom:0}
 .name{font-weight:900}.small{font-size:13px;color:var(--muted);margin-top:3px}
 .pill{background:#eef3ff;color:#3157a8;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900}
+.pill.active{background:#e9fff0;color:#11743e}
 .attempt{
   padding:12px 0;border-bottom:1px solid #edf0f5;display:grid;grid-template-columns:1fr auto;gap:12px
 }
@@ -76,9 +83,9 @@ button.danger{background:#fff0f0;color:#9e2926}
       <h1>📊 Suivi des révisions</h1>
       <div class="subtitle">Tableau de bord administrateur</div>
     </div>
-    <div id="adminActions" class="hidden">
+    <div id="adminActions" class="hidden" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="live-pill"><span class="live-dot"></span>Temps réel</span>
       <a class="btn" href="./index.html">🏠 Site</a>
-      <button id="refreshBtn">↻ Actualiser</button>
       <button id="logoutBtn" class="danger">Déconnexion</button>
     </div>
   </div>
@@ -93,12 +100,8 @@ button.danger{background:#fff0f0;color:#9e2926}
   <section id="bootstrapCard" class="card hidden">
     <h2 class="section-title">✅ Connexion Google réussie</h2>
     <div id="adminIdentity" class="small"></div>
-    <p>Ton compte est bien reconnu. Pour lui donner l'accès aux données de tous les élèves, il faut maintenant ajouter <b>cet UID</b> aux règles Firestore :</p>
+    <p>Ton compte est reconnu mais Firestore ne lui donne pas encore l'accès global.</p>
     <div id="uidValue" class="uidbox"></div>
-    <button id="copyUid" class="primary">📋 Copier l’UID</button>
-    <div class="status info">
-      Pour l'instant, Firestore refuse normalement l'accès global. C'est voulu : on verrouille d'abord l'administrateur, puis le tableau de bord se débloquera.
-    </div>
   </section>
 
   <main id="dashboard" class="hidden">
@@ -115,10 +118,15 @@ button.danger{background:#fff0f0;color:#9e2926}
         <div id="usersList"></div>
       </section>
       <section class="card">
-        <h2 class="section-title">🕒 Dernières tentatives</h2>
-        <div id="attemptsList"></div>
+        <h2 class="section-title">🕒 Dernières séances</h2>
+        <div id="sessionsList"></div>
       </section>
     </div>
+
+    <section class="card">
+      <h2 class="section-title">🎯 Derniers scores</h2>
+      <div id="attemptsList"></div>
+    </section>
   </main>
 </div>
 
@@ -129,7 +137,7 @@ import {
   signInWithPopup, signOut, browserLocalPersistence, setPersistence
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
-  getFirestore, collection, getDocs
+  getFirestore, collection, onSnapshot
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -142,8 +150,6 @@ const firebaseConfig = {
   measurementId: "G-8XHV324RVE"
 };
 
-// Application Firebase séparée : la connexion Google admin ne remplace pas
-// le compte anonyme utilisé par les exercices sur ce même navigateur.
 const adminApp = initializeApp(firebaseConfig, "adminDashboard");
 const auth = getAuth(adminApp);
 const db = getFirestore(adminApp);
@@ -152,11 +158,19 @@ const provider = new GoogleAuthProvider();
 const $ = id => document.getElementById(id);
 const loginCard = $("loginCard"), bootstrapCard = $("bootstrapCard"), dashboard = $("dashboard");
 
+let profiles = [], sessions = [], attempts = [];
+let unsubs = [];
+
+function tsMs(value){
+  if(!value) return 0;
+  if(typeof value.toMillis === "function") return value.toMillis();
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+}
 function fmtDate(value){
-  try{
-    const d = value?.toDate ? value.toDate() : new Date(value);
-    return new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"short"}).format(d);
-  }catch{return "—"}
+  const ms = tsMs(value);
+  if(!ms) return "—";
+  return new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"short"}).format(new Date(ms));
 }
 function fmtDuration(sec){
   sec = Number(sec)||0;
@@ -169,64 +183,85 @@ function fmtDuration(sec){
 function esc(s){
   return String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 }
+function isActiveSession(s){
+  const ms = tsMs(s.lastSeenAt);
+  return ms > 0 && (Date.now() - ms) < 35000;
+}
 
-async function loadData(){
-  try{
-    const [pSnap,sSnap,aSnap] = await Promise.all([
-      getDocs(collection(db,"profiles")),
-      getDocs(collection(db,"sessions")),
-      getDocs(collection(db,"attempts"))
-    ]);
+function renderData(){
+  bootstrapCard.classList.add("hidden");
+  dashboard.classList.remove("hidden");
 
-    const profiles = pSnap.docs.map(d=>({id:d.id,...d.data()}));
-    const sessions = sSnap.docs.map(d=>({id:d.id,...d.data()}));
-    const attempts = aSnap.docs.map(d=>({id:d.id,...d.data()}));
+  $("mUsers").textContent = profiles.length;
+  $("mSessions").textContent = sessions.length;
+  $("mTime").textContent = fmtDuration(sessions.reduce((a,s)=>a+(Number(s.activeSeconds)||0),0));
+  const scored = attempts.filter(a=>Number.isFinite(Number(a.percentage)));
+  $("mAvg").textContent = scored.length
+    ? Math.round(scored.reduce((x,a)=>x+Number(a.percentage),0)/scored.length)+" %"
+    : "—";
 
-    bootstrapCard.classList.add("hidden");
-    dashboard.classList.remove("hidden");
+  const byUid = new Map();
+  sessions.forEach(s=>{
+    const x = byUid.get(s.uid) || {sessions:0,time:0,last:0,active:false,lastActivity:""};
+    x.sessions++;
+    x.time += Number(s.activeSeconds)||0;
+    const last = tsMs(s.lastSeenAt);
+    if(last > x.last){ x.last = last; x.lastActivity = s.activity || s.pageActivity || ""; }
+    if(isActiveSession(s)) x.active = true;
+    byUid.set(s.uid,x);
+  });
 
-    $("mUsers").textContent = profiles.length;
-    $("mSessions").textContent = sessions.length;
-    $("mTime").textContent = fmtDuration(sessions.reduce((a,s)=>a+(Number(s.activeSeconds)||0),0));
-    const scored = attempts.filter(a=>Number.isFinite(Number(a.percentage)));
-    $("mAvg").textContent = scored.length ? Math.round(scored.reduce((x,a)=>x+Number(a.percentage),0)/scored.length)+" %" : "—";
+  const pSorted=[...profiles].sort((a,b)=>{
+    const aa=byUid.get(a.id)?.last || tsMs(a.lastSeenAt);
+    const bb=byUid.get(b.id)?.last || tsMs(b.lastSeenAt);
+    return bb-aa;
+  });
 
-    profiles.sort((a,b)=>{
-      const ad=a.lastSeenAt?.toMillis?.()||0, bd=b.lastSeenAt?.toMillis?.()||0;
-      return bd-ad;
-    });
-
-    const byUid = new Map();
-    sessions.forEach(s=>{
-      const x = byUid.get(s.uid) || {sessions:0,time:0};
-      x.sessions++; x.time += Number(s.activeSeconds)||0; byUid.set(s.uid,x);
-    });
-
-    $("usersList").innerHTML = profiles.length ? profiles.map(p=>{
-      const stats=byUid.get(p.id)||{sessions:0,time:0};
-      return `<div class="user-row">
-        <div>
-          <div class="name">${esc(p.name || "Sans nom")}</div>
-          <div class="small">Dernière activité : ${fmtDate(p.lastSeenAt)} · ${stats.sessions} séance(s) · ${fmtDuration(stats.time)}</div>
+  $("usersList").innerHTML = pSorted.length ? pSorted.map(p=>{
+    const stats=byUid.get(p.id)||{sessions:0,time:0,last:tsMs(p.lastSeenAt),active:false,lastActivity:""};
+    return `<div class="user-row">
+      <div>
+        <div class="name">${esc(p.name || "Sans nom")}</div>
+        <div class="small">
+          ${stats.active ? "🟢 En train de réviser" : "Dernière activité : "+fmtDate(stats.last || p.lastSeenAt)}
+          ${stats.lastActivity ? " · "+esc(stats.lastActivity) : ""}
+          · ${stats.sessions} séance(s) · ${fmtDuration(stats.time)}
         </div>
-        <span class="pill">${esc(p.role || "eleve")}</span>
-      </div>`;
-    }).join("") : `<div class="empty">Aucun profil pour le moment.</div>`;
+      </div>
+      <span class="pill ${stats.active ? "active" : ""}">${stats.active ? "EN COURS" : esc(p.role || "eleve")}</span>
+    </div>`;
+  }).join("") : `<div class="empty">Aucun profil pour le moment.</div>`;
 
-    attempts.sort((a,b)=>{
-      const ad=a.createdAt?.toMillis?.()||0, bd=b.createdAt?.toMillis?.()||0;
-      return bd-ad;
-    });
-    $("attemptsList").innerHTML = attempts.length ? attempts.slice(0,20).map(a=>`
-      <div class="attempt">
-        <div>
-          <div class="name">${esc(a.name || "Utilisateur")} · ${esc(a.activity || "")}</div>
-          <div class="small">${esc(a.subject || "")} · ${fmtDate(a.createdAt)}</div>
-        </div>
-        <div class="score">${Number(a.score)||0}/${Number(a.maxScore)||0}</div>
-      </div>`).join("") : `<div class="empty">Aucune tentative pour le moment.</div>`;
+  const sSorted=[...sessions].sort((a,b)=>tsMs(b.startedAt)-tsMs(a.startedAt));
+  $("sessionsList").innerHTML = sSorted.length ? sSorted.slice(0,15).map(s=>`
+    <div class="session-row">
+      <div>
+        <div class="name">${esc(s.name || "Utilisateur")} · ${esc(s.activity || "Révisions")}</div>
+        <div class="small">${esc(s.subject || "")} · ${fmtDate(s.startedAt)} · ${fmtDuration(s.activeSeconds)}</div>
+      </div>
+      <span class="pill ${isActiveSession(s) ? "active" : ""}">${isActiveSession(s) ? "🟢 EN COURS" : "terminée"}</span>
+    </div>`).join("") : `<div class="empty">Aucune séance pour le moment.</div>`;
 
-  }catch(err){
+  const aSorted=[...attempts].sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));
+  $("attemptsList").innerHTML = aSorted.length ? aSorted.slice(0,30).map(a=>`
+    <div class="attempt">
+      <div>
+        <div class="name">${esc(a.name || "Utilisateur")} · ${esc(a.activity || "")}</div>
+        <div class="small">${esc(a.subject || "")} · ${fmtDate(a.createdAt)}</div>
+      </div>
+      <div class="score">${Number(a.score)||0}/${Number(a.maxScore)||0}</div>
+    </div>`).join("") : `<div class="empty">Aucun score pour le moment.</div>`;
+}
+
+function stopRealtime(){
+  unsubs.forEach(u=>{try{u()}catch{}});
+  unsubs=[];
+}
+
+function startRealtime(){
+  stopRealtime();
+
+  const handleError = err=>{
     console.error(err);
     if(err?.code === "permission-denied"){
       dashboard.classList.add("hidden");
@@ -234,7 +269,22 @@ async function loadData(){
     }else{
       $("loginStatus").innerHTML = `<div class="status err">Erreur : ${esc(err.message || err)}</div>`;
     }
-  }
+  };
+
+  unsubs.push(onSnapshot(collection(db,"profiles"), snap=>{
+    profiles=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderData();
+  }, handleError));
+
+  unsubs.push(onSnapshot(collection(db,"sessions"), snap=>{
+    sessions=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderData();
+  }, handleError));
+
+  unsubs.push(onSnapshot(collection(db,"attempts"), snap=>{
+    attempts=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderData();
+  }, handleError));
 }
 
 await setPersistence(auth, browserLocalPersistence);
@@ -245,16 +295,10 @@ $("googleBtn").addEventListener("click", async ()=>{
   catch(err){ $("loginStatus").innerHTML = `<div class="status err">${esc(err.message || err)}</div>`; }
 });
 $("logoutBtn").addEventListener("click", ()=>signOut(auth));
-$("refreshBtn").addEventListener("click", loadData);
-$("copyUid").addEventListener("click", async ()=>{
-  const value = $("uidValue").textContent.trim();
-  await navigator.clipboard.writeText(value);
-  $("copyUid").textContent = "✅ UID copié";
-  setTimeout(()=>$("copyUid").textContent="📋 Copier l’UID",1600);
-});
 
-onAuthStateChanged(auth, async user=>{
+onAuthStateChanged(auth, user=>{
   if(!user){
+    stopRealtime();
     loginCard.classList.remove("hidden");
     bootstrapCard.classList.add("hidden");
     dashboard.classList.add("hidden");
@@ -267,8 +311,11 @@ onAuthStateChanged(auth, async user=>{
   $("adminActions").classList.remove("hidden");
   $("uidValue").textContent = user.uid;
   $("adminIdentity").textContent = `${user.displayName || "Compte Google"}${user.email ? " · "+user.email : ""}`;
-  await loadData();
+  startRealtime();
 });
+
+// Rafraîchit seulement les libellés "EN COURS" entre deux écritures Firestore.
+setInterval(()=>{ if(!dashboard.classList.contains("hidden")) renderData(); },5000);
 </script>
 </body>
 </html>
