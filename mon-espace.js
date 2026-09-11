@@ -232,11 +232,16 @@ async function imageFileToAvatar(file){
 }
 
 async function saveAvatarData(avatarData){
-  const batch=writeBatch(db);
-  members.forEach(m=>batch.update(doc(db,"profiles",m.id),{avatarData}));
-  await batch.commit();
-  members=members.map(m=>({...m,avatarData}));
-  if(state.profile) state.profile.avatarData=avatarData;
+  // La photo est enregistrée sur le profil principal du groupe.
+  // Ainsi, un seul enregistrement suffit même si Léo utilise plusieurs appareils.
+  const primaryId = state.profile.groupId || state.user.uid;
+
+  await updateDoc(doc(db,"profiles",primaryId),{avatarData});
+
+  members=members.map(m=>m.id===primaryId ? {...m,avatarData} : m);
+  if(state.user.uid===primaryId && state.profile){
+    state.profile.avatarData=avatarData;
+  }
   render();
 }
 
@@ -247,7 +252,12 @@ async function chooseAvatar(file){
     const data=await imageFileToAvatar(file);
     await saveAvatarData(data);
   }catch(e){
-    alert(e.message||e);
+    console.error("Erreur photo de profil :", e);
+    if(e?.code==="permission-denied"){
+      alert("La photo n’a pas pu être enregistrée : les règles Firebase ne l’autorisent pas encore. Mets bien à jour les règles Firestore fournies avec cette version.");
+    }else{
+      alert(e.message||e);
+    }
   }finally{
     $("avatarInput").disabled=false;
     $("avatarInput").value="";
