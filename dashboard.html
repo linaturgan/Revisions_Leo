@@ -36,6 +36,8 @@ button.primary{background:var(--blue);color:white}
 button.test{background:#fff3d6;color:#7a5200}
 button.student{background:#eaf8ef;color:#126a3a}
 button.danger{background:#fff0f0;color:#9e2926}
+button.rename{background:#eef5ff;color:#204f9e}
+button.merge{background:#f1edff;color:#5b3fa8}
 select{border:1px solid #dbe3f0;background:#fff;min-width:190px}
 .card{
   background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:20px;
@@ -86,6 +88,23 @@ select{border:1px solid #dbe3f0;background:#fff;min-width:190px}
   padding:10px 12px;border:1px solid #e7ebf2;border-radius:14px;background:#fafbfe;cursor:pointer
 }
 .user-mini:hover{background:#fff}.user-mini.active{border-color:#a9bfff;background:#f4f7ff}
+
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(17,24,39,.48);display:grid;place-items:center;
+  padding:18px;z-index:1000
+}
+.modal{
+  width:min(520px,100%);background:white;border-radius:20px;padding:20px;
+  box-shadow:0 24px 70px rgba(0,0,0,.22);border:1px solid var(--line)
+}
+.modal h3{margin:0 0 8px;font-size:22px}
+.modal p{color:var(--muted);line-height:1.45}
+.modal-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;margin-top:16px}
+.modal select,.modal input{
+  width:100%;border:1px solid #dbe3f0;background:#fff;border-radius:13px;
+  padding:11px 12px;font:inherit;font-weight:750;color:var(--ink)
+}
+
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
 @media(max-width:520px){.wrap{padding:14px}.grid{grid-template-columns:1fr 1fr}.metric .value{font-size:24px}}
 </style>
@@ -125,7 +144,10 @@ select{border:1px solid #dbe3f0;background:#fff;min-width:190px}
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <span id="activeBadge" class="pill">—</span>
+          <button id="renameBtn" class="rename hidden">✏️ Renommer</button>
+          <button id="mergeBtn" class="merge hidden">🔗 Regrouper</button>
           <button id="toggleRoleBtn" class="test hidden">🧪 Marquer comme test</button>
+          <button id="deleteBtn" class="danger hidden">🗑️ Supprimer</button>
         </div>
       </div>
     </section>
@@ -164,6 +186,18 @@ select{border:1px solid #dbe3f0;background:#fff;min-width:190px}
       <div id="allUsers" class="all-users"></div>
     </section>
   </main>
+
+  <div id="modalBackdrop" class="modal-backdrop hidden">
+    <div class="modal">
+      <h3 id="modalTitle">Action</h3>
+      <p id="modalText"></p>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button id="modalCancel">Annuler</button>
+        <button id="modalConfirm" class="primary">Valider</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -173,7 +207,7 @@ import {
   signInWithPopup, signOut, browserLocalPersistence, setPersistence
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
-  getFirestore, collection, onSnapshot, doc, updateDoc
+  getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, writeBatch
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -193,6 +227,7 @@ const provider = new GoogleAuthProvider();
 const $ = id => document.getElementById(id);
 
 let profiles=[], sessions=[], attempts=[], selectedUid=null, unsubs=[];
+let modalResolver=null;
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 function tsMs(v){
@@ -211,20 +246,76 @@ function fmtDuration(sec){
   const h=Math.floor(m/60),r=m%60; return `${h} h${r?" "+r+" min":""}`;
 }
 function isActive(s){const ms=tsMs(s.lastSeenAt);return ms>0&&(Date.now()-ms)<35000}
-function visibleProfiles(){return profiles.filter(p=>!$("hideTests").checked||p.role!=="test")}
-function getSelectedProfile(){return profiles.find(p=>p.id===selectedUid)||null}
+
+function canonicalId(p){ return p?.groupId || p?.id || null; }
+
+function allGroups(){
+  const map=new Map();
+  profiles.forEach(p=>{
+    const gid=canonicalId(p);
+    if(!map.has(gid)) map.set(gid,[]);
+    map.get(gid).push(p);
+  });
+  return [...map.entries()].map(([id,members])=>{
+    const primary=members.find(m=>m.id===id) || members[0];
+    const lastSeen=Math.max(...members.map(m=>tsMs(m.lastSeenAt)),0);
+    const role=primary?.role || members.find(m=>m.role)?.role || "eleve";
+    const name=primary?.name || members[0]?.name || "Sans nom";
+    return {id,members,primary,name,role,lastSeen};
+  });
+}
+
+function visibleGroups(){
+  return allGroups().filter(g=>!$("hideTests").checked || g.role!=="test");
+}
+
+function selectedGroup(){
+  return allGroups().find(g=>g.id===selectedUid) || null;
+}
+
+function groupUids(group){
+  return new Set(group?.members?.map(m=>m.id) || []);
+}
+
+function sessionsForGroup(group){
+  const ids=groupUids(group);
+  return sessions.filter(s=>ids.has(s.uid));
+}
+
+function attemptsForGroup(group){
+  const ids=groupUids(group);
+  return attempts.filter(a=>ids.has(a.uid));
+}
+
+function openModal({title,text="",body="",confirmText="Valider",danger=false}){
+  $("modalTitle").textContent=title;
+  $("modalText").textContent=text;
+  $("modalBody").innerHTML=body;
+  $("modalConfirm").textContent=confirmText;
+  $("modalConfirm").className=danger?"danger":"primary";
+  $("modalBackdrop").classList.remove("hidden");
+  return new Promise(resolve=>{modalResolver=resolve});
+}
+function closeModal(value){
+  $("modalBackdrop").classList.add("hidden");
+  if(modalResolver){ const r=modalResolver; modalResolver=null; r(value); }
+}
+$("modalCancel").onclick=()=>closeModal(false);
+$("modalConfirm").onclick=()=>closeModal(true);
+$("modalBackdrop").addEventListener("click",e=>{if(e.target===$("modalBackdrop"))closeModal(false)});
 
 function syncUserSelect(){
-  const list=visibleProfiles().sort((a,b)=>(a.name||"").localeCompare(b.name||"","fr"));
-  if(!selectedUid || !list.some(p=>p.id===selectedUid)) selectedUid=list[0]?.id||null;
-  $("userSelect").innerHTML=list.map(p=>`<option value="${p.id}" ${p.id===selectedUid?"selected":""}>${esc(p.name||"Sans nom")}${p.role==="test"?" [test]":""}</option>`).join("");
+  const list=visibleGroups().sort((a,b)=>a.name.localeCompare(b.name,"fr"));
+  if(!selectedUid || !list.some(g=>g.id===selectedUid)) selectedUid=list[0]?.id||null;
+  $("userSelect").innerHTML=list.map(g=>`<option value="${g.id}" ${g.id===selectedUid?"selected":""}>${esc(g.name)}${g.role==="test"?" [test]":""}${g.members.length>1?" · "+g.members.length+" appareils":""}</option>`).join("");
 }
 
 function render(){
   if($("dashboard").classList.contains("hidden")) return;
   syncUserSelect();
 
-  const p=getSelectedProfile();
+  const g=selectedGroup();
+  const p=g?.primary || null;
   if(!p){
     $("userName").textContent="Aucun utilisateur";
     ["mSessions","mAttempts"].forEach(id=>$(id).textContent="0");
@@ -234,19 +325,19 @@ function render(){
     return;
   }
 
-  const us=sessions.filter(s=>s.uid===p.id);
-  const ua=attempts.filter(a=>a.uid===p.id);
+  const us=sessionsForGroup(g);
+  const ua=attemptsForGroup(g);
   const active=us.some(isActive);
   const lastS=[...us].sort((a,b)=>tsMs(b.lastSeenAt)-tsMs(a.lastSeenAt))[0];
 
-  $("userName").textContent=p.name||"Sans nom";
-  $("userMeta").textContent=`Dernière activité : ${fmtDate(lastS?.lastSeenAt||p.lastSeenAt)} · rôle : ${p.role||"eleve"}`;
+  $("userName").textContent=g.name||"Sans nom";
+  $("userMeta").textContent=`Dernière activité : ${fmtDate(lastS?.lastSeenAt||g.lastSeen)} · rôle : ${g.role||"eleve"} · ${g.members.length} appareil${g.members.length>1?"s":""}`;
   $("activeBadge").textContent=active?"🟢 En train de réviser":"Hors ligne";
-  $("activeBadge").className="pill "+(active?"active":"")+(p.role==="test"?" test":"");
+  $("activeBadge").className="pill "+(active?"active":"")+(g.role==="test"?" test":"");
 
   const roleBtn=$("toggleRoleBtn");
-  roleBtn.classList.remove("hidden");
-  if(p.role==="test"){
+  ["renameBtn","mergeBtn","toggleRoleBtn","deleteBtn"].forEach(id=>$(id).classList.remove("hidden"));
+  if(g.role==="test"){
     roleBtn.textContent="🎓 Marquer comme élève";
     roleBtn.className="student";
   }else{
@@ -294,12 +385,12 @@ function render(){
 }
 
 function renderAllUsers(){
-  const list=visibleProfiles().sort((a,b)=>tsMs(b.lastSeenAt)-tsMs(a.lastSeenAt));
-  $("allUsers").innerHTML=list.length?list.map(p=>{
-    const us=sessions.filter(s=>s.uid===p.id), active=us.some(isActive);
-    return `<div class="user-mini ${p.id===selectedUid?"active":""}" data-uid="${p.id}">
-      <div><div class="name">${esc(p.name||"Sans nom")}</div><div class="small">${active?"🟢 En cours":"Dernière activité : "+fmtDate(p.lastSeenAt)}</div></div>
-      <span class="pill ${p.role==="test"?"test":""}">${esc(p.role||"eleve")}</span>
+  const list=visibleGroups().sort((a,b)=>b.lastSeen-a.lastSeen);
+  $("allUsers").innerHTML=list.length?list.map(g=>{
+    const us=sessionsForGroup(g), active=us.some(isActive);
+    return `<div class="user-mini ${g.id===selectedUid?"active":""}" data-uid="${g.id}">
+      <div><div class="name">${esc(g.name)}</div><div class="small">${active?"🟢 En cours":"Dernière activité : "+fmtDate(g.lastSeen)} · ${g.members.length} appareil${g.members.length>1?"s":""}</div></div>
+      <span class="pill ${g.role==="test"?"test":""}">${esc(g.role||"eleve")}</span>
     </div>`;
   }).join(""):'<div class="empty">Aucun utilisateur.</div>';
 
@@ -323,10 +414,87 @@ $("userSelect").onchange=e=>{selectedUid=e.target.value;render()};
 $("hideTests").onchange=()=>render();
 
 $("toggleRoleBtn").onclick=async()=>{
-  const p=getSelectedProfile(); if(!p)return;
-  const newRole=p.role==="test"?"eleve":"test";
-  try{await updateDoc(doc(db,"profiles",p.id),{role:newRole})}
-  catch(e){alert("Impossible de modifier le rôle : "+(e.message||e))}
+  const g=selectedGroup(); if(!g)return;
+  const newRole=g.role==="test"?"eleve":"test";
+  try{
+    const batch=writeBatch(db);
+    g.members.forEach(m=>batch.update(doc(db,"profiles",m.id),{role:newRole}));
+    await batch.commit();
+  }catch(e){alert("Impossible de modifier le rôle : "+(e.message||e))}
+};
+
+$("renameBtn").onclick=async()=>{
+  const g=selectedGroup(); if(!g)return;
+  const ok=await openModal({
+    title:"✏️ Renommer le profil",
+    text:`Nouveau nom pour ${g.name} :`,
+    body:`<input id="renameInput" maxlength="30" value="${esc(g.name)}" autocomplete="off">`,
+    confirmText:"Renommer"
+  });
+  if(!ok)return;
+  const input=$("renameInput");
+  const name=(input?.value||"").trim().replace(/\s+/g," ").slice(0,30);
+  if(!name)return;
+  try{
+    const batch=writeBatch(db);
+    g.members.forEach(m=>batch.update(doc(db,"profiles",m.id),{name}));
+    await batch.commit();
+  }catch(e){alert("Impossible de renommer : "+(e.message||e))}
+};
+
+$("mergeBtn").onclick=async()=>{
+  const source=selectedGroup(); if(!source)return;
+  const targets=allGroups().filter(g=>g.id!==source.id);
+  if(!targets.length){alert("Il n’y a aucun autre profil avec lequel regrouper celui-ci.");return;}
+  const options=targets.sort((a,b)=>a.name.localeCompare(b.name,"fr"))
+    .map(g=>`<option value="${g.id}">${esc(g.name)}${g.members.length>1?" · "+g.members.length+" appareils":""}</option>`).join("");
+  const ok=await openModal({
+    title:"🔗 Regrouper les profils",
+    text:`Les séances et scores de « ${source.name} » seront affichés avec le profil choisi. Les appareils continueront à fonctionner normalement.`,
+    body:`<select id="mergeTarget">${options}</select>`,
+    confirmText:"Regrouper"
+  });
+  if(!ok)return;
+  const targetId=$("mergeTarget")?.value;
+  const target=allGroups().find(g=>g.id===targetId);
+  if(!target)return;
+  try{
+    const batch=writeBatch(db);
+    source.members.forEach(m=>{
+      batch.update(doc(db,"profiles",m.id),{
+        groupId:target.id,
+        name:target.name,
+        role:target.role
+      });
+    });
+    await batch.commit();
+    selectedUid=target.id;
+  }catch(e){alert("Impossible de regrouper : "+(e.message||e))}
+};
+
+$("deleteBtn").onclick=async()=>{
+  const g=selectedGroup(); if(!g)return;
+  const us=sessionsForGroup(g), ua=attemptsForGroup(g);
+  const ok=await openModal({
+    title:"🗑️ Supprimer le profil",
+    text:`Supprimer définitivement « ${g.name} » ainsi que ${us.length} séance(s) et ${ua.length} tentative(s) ? Cette action est irréversible.`,
+    confirmText:"Supprimer définitivement",
+    danger:true
+  });
+  if(!ok)return;
+  try{
+    const refs=[
+      ...g.members.map(m=>doc(db,"profiles",m.id)),
+      ...us.map(s=>doc(db,"sessions",s.id)),
+      ...ua.map(a=>doc(db,"attempts",a.id))
+    ];
+    for(let i=0;i<refs.length;i+=400){
+      const batch=writeBatch(db);
+      refs.slice(i,i+400).forEach(r=>batch.delete(r));
+      await batch.commit();
+    }
+    selectedUid=null;
+  }catch(e){alert("Impossible de supprimer : "+(e.message||e))}
 };
 
 onAuthStateChanged(auth,user=>{
