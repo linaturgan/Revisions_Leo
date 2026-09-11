@@ -1,0 +1,114 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && request.auth.uid == "iEE4z74B4EWvV0Sjsjp6Hi24fRT2";
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function sameGroup(uid) {
+      let me = get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data;
+      let them = get(/databases/$(database)/documents/profiles/$(uid)).data;
+
+      return signedIn() && (
+        uid == request.auth.uid
+        || (('groupId' in me) && me.groupId == uid)
+        || (('groupId' in them) && them.groupId == request.auth.uid)
+        || (
+          ('groupId' in me)
+          && ('groupId' in them)
+          && me.groupId == them.groupId
+        )
+      );
+    }
+
+    function validAvatar() {
+      return !('avatarData' in request.resource.data)
+        || (
+          request.resource.data.avatarData is string
+          && request.resource.data.avatarData.size() <= 160000
+          && (
+            request.resource.data.avatarData == ''
+            || request.resource.data.avatarData.matches('data:image/.*')
+          )
+        );
+    }
+
+    match /profiles/{uid} {
+      allow create: if isOwner(uid)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 30
+        && request.resource.data.role == 'eleve'
+        && validAvatar();
+
+      allow read: if sameGroup(uid) || isAdmin();
+
+      allow update: if (
+        isOwner(uid)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'lastSeenAt', 'avatarData'])
+        && validAvatar()
+      ) || (
+        sameGroup(uid)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'avatarData'])
+        && validAvatar()
+      ) || (
+        isAdmin()
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 30
+        && request.resource.data.role in ['eleve', 'test']
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'role', 'groupId', 'avatarData'])
+        && validAvatar()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    match /sessions/{sessionId} {
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid;
+
+      allow read: if (
+        signedIn()
+        && sameGroup(resource.data.uid)
+      ) || isAdmin();
+
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['activeSeconds', 'lastSeenAt']);
+
+      allow delete: if isAdmin();
+    }
+
+    match /attempts/{attemptId} {
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid;
+
+      allow read: if (
+        signedIn()
+        && sameGroup(resource.data.uid)
+      ) || isAdmin();
+
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+  }
+}

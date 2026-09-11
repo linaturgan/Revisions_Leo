@@ -121,6 +121,102 @@ h1{
 .anglais{--accent:#6d75d8}
 .espagnol{--accent:#e05b47}
 .latin{--accent:#9a6b45}
+
+.hero-top{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;
+}
+.space-btn{
+  border:1px solid #dce5f2;background:#fff;color:var(--ink);
+  border-radius:999px;padding:10px 14px;font-weight:900;font-size:14px;
+  cursor:pointer;box-shadow:0 6px 18px rgba(40,58,96,.09);white-space:nowrap;
+  position:relative;z-index:2;
+}
+.space-btn:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(40,58,96,.13)}
+.space-overlay{
+  position:fixed;inset:0;z-index:100000;background:rgba(20,29,49,.52);
+  backdrop-filter:blur(4px);display:flex;justify-content:flex-end;
+}
+.space-overlay.hidden{display:none}
+.space-panel{
+  width:min(520px,100%);height:100%;overflow:auto;background:#f7f9fd;
+  box-shadow:-18px 0 60px rgba(20,29,49,.18);padding:18px;
+  animation:spaceIn .2s ease-out;
+}
+@keyframes spaceIn{from{transform:translateX(35px);opacity:.5}to{transform:none;opacity:1}}
+.space-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.space-head h2{margin:0;font-size:27px}
+.space-close{
+  width:40px;height:40px;border:0;border-radius:13px;background:#e9eef8;
+  font-size:22px;font-weight:900;cursor:pointer;color:var(--ink)
+}
+.space-card{
+  background:#fff;border:1px solid var(--line);border-radius:19px;padding:16px;
+  box-shadow:0 7px 20px rgba(40,58,96,.06);margin-bottom:13px;
+}
+.space-profile{display:flex;justify-content:space-between;gap:12px;align-items:center}
+
+.profile-avatar-wrap{
+  display:flex;align-items:center;gap:12px;min-width:0
+}
+.profile-avatar{
+  width:72px;height:72px;border-radius:50%;object-fit:cover;
+  border:3px solid #fff;box-shadow:0 5px 16px rgba(40,58,96,.15);
+  background:linear-gradient(135deg,#dff3ff,#ffe8ef);flex:none
+}
+.profile-avatar-placeholder{
+  width:72px;height:72px;border-radius:50%;display:grid;place-items:center;
+  font-size:30px;font-weight:950;color:#51627d;
+  background:linear-gradient(135deg,#dff3ff,#ffe8ef);
+  border:3px solid #fff;box-shadow:0 5px 16px rgba(40,58,96,.15);flex:none
+}
+.avatar-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.avatar-actions button,.avatar-label{
+  border:0;border-radius:11px;padding:8px 10px;font-weight:900;font-size:12px;
+  cursor:pointer;background:#eef4ff;color:#2652a0;display:inline-flex;align-items:center;gap:5px
+}
+.avatar-actions .remove{background:#fff0f0;color:#9e2926}
+.avatar-label input{display:none}
+
+.space-name{font-size:23px;font-weight:950}
+.space-mini{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.4}
+.space-action{
+  border:0;border-radius:12px;padding:9px 11px;background:#eef4ff;color:#2652a0;
+  font-weight:900;cursor:pointer;white-space:nowrap
+}
+.space-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.space-stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px}
+.space-stat strong{display:block;font-size:23px}.space-stat span{font-size:12px;color:var(--muted);font-weight:800}
+.space-section-title{font-size:17px;font-weight:950;margin:0 0 9px}
+.space-row{
+  display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;
+  padding:9px 0;border-bottom:1px solid #edf1f6
+}
+.space-row:last-child{border-bottom:0}
+.space-score{font-weight:950}
+.space-tags{display:flex;gap:6px;flex-wrap:wrap}
+.space-tag{
+  background:#fff0f3;color:#a43152;border-radius:999px;padding:5px 8px;
+  font-size:12px;font-weight:850
+}
+.space-empty{text-align:center;color:var(--muted);padding:14px 6px}
+.rename-form{display:flex;gap:8px;margin-top:12px}
+.rename-form input{
+  min-width:0;flex:1;border:2px solid #dfe6f1;border-radius:12px;
+  padding:10px 11px;font:inherit;font-weight:750;outline:none
+}
+.rename-form input:focus{border-color:#246bfd}
+.rename-form button{
+  border:0;border-radius:12px;background:#246bfd;color:#fff;padding:10px 12px;font-weight:900;cursor:pointer
+}
+.space-note{
+  background:#eef5ff;color:#315583;border-radius:14px;padding:10px 12px;
+  font-size:12px;font-weight:750;line-height:1.4;margin-bottom:13px
+}
+@media(max-width:620px){
+  .space-panel{padding:14px}
+  .hero-top{align-items:center}
+}
+
 @media(max-width:620px){
   .wrap{padding:14px}
   .hero{padding:20px;border-radius:22px}
@@ -132,7 +228,10 @@ h1{
 <div class="wrap">
 
   <header class="hero">
-    <h1>🎒 Le coin révisions de Léo</h1>
+    <div class="hero-top">
+      <h1>🎒 Le coin révisions de Léo</h1>
+      <button id="openSpaceBtn" class="space-btn" type="button">🌟 Mon espace</button>
+    </div>
     <p>Choisis une matière, puis une activité. Pas besoin de tout faire : une petite mission bien réussie vaut mieux qu’une heure à râler devant les cahiers 😄</p>
     <nav class="quick">
       <a href="#maths">➗ Maths</a>
@@ -237,7 +336,74 @@ h1{
   </main>
 
   <div class="footer"></div>
+
+  <div id="spaceOverlay" class="space-overlay hidden" aria-hidden="true">
+    <aside class="space-panel" role="dialog" aria-modal="true" aria-labelledby="spaceTitle">
+      <div class="space-head">
+        <h2 id="spaceTitle">🌟 Mon espace</h2>
+        <button id="closeSpaceBtn" class="space-close" type="button" aria-label="Fermer">×</button>
+      </div>
+
+      <div id="spaceLoading" class="space-card">
+        <div class="space-empty">Chargement de ton suivi…</div>
+      </div>
+
+      <div id="spaceContent" class="hidden">
+        <div class="space-card">
+          <div class="space-profile">
+            <div class="profile-avatar-wrap">
+              <img id="spaceAvatar" class="profile-avatar hidden" alt="Photo de profil">
+              <div id="spaceAvatarPlaceholder" class="profile-avatar-placeholder">👤</div>
+              <div>
+                <div id="spaceName" class="space-name">—</div>
+                <div id="spaceDevices" class="space-mini"></div>
+                <div class="avatar-actions">
+                  <label class="avatar-label">📷 Choisir une photo
+                    <input id="avatarInput" type="file" accept="image/*">
+                  </label>
+                  <button id="removeAvatarBtn" class="remove hidden" type="button">🗑️ Retirer</button>
+                </div>
+              </div>
+            </div>
+            <button id="showRenameBtn" class="space-action" type="button">✏️ Renommer</button>
+          </div>
+          <div id="renameForm" class="rename-form hidden">
+            <input id="renameInput" maxlength="30" autocomplete="name" aria-label="Nouveau prénom ou pseudo">
+            <button id="saveRenameBtn" type="button">OK</button>
+          </div>
+        </div>
+
+        <div class="space-stats">
+          <div class="space-stat"><strong id="spaceSessions">0</strong><span>SÉANCES</span></div>
+          <div class="space-stat"><strong id="spaceTime">0 min</strong><span>TEMPS ACTIF</span></div>
+          <div class="space-stat"><strong id="spaceAverage">—</strong><span>SCORE MOYEN</span></div>
+          <div class="space-stat"><strong id="spaceAttempts">0</strong><span>TENTATIVES</span></div>
+        </div>
+
+        <div class="space-card">
+          <h3 class="space-section-title">📚 Mes résultats par matière</h3>
+          <div id="spaceSubjects"></div>
+        </div>
+
+        <div class="space-card">
+          <h3 class="space-section-title">🎯 Mes derniers scores</h3>
+          <div id="spaceRecent"></div>
+        </div>
+
+        <div class="space-card">
+          <h3 class="space-section-title">⚠️ À retravailler</h3>
+          <div id="spaceErrors"></div>
+        </div>
+
+        <div class="space-note">
+          Tes résultats peuvent regrouper plusieurs appareils lorsqu'ils ont été associés depuis le tableau de bord.
+        </div>
+      </div>
+    </aside>
+  </div>
+
 </div>
 <script type="module" src="suivi.js"></script>
+<script type="module" src="mon-espace.js"></script>
 </body>
 </html>
