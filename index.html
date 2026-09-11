@@ -223,6 +223,35 @@ h1{
   .hero{padding:20px;border-radius:22px}
   .subjects{grid-template-columns:1fr}
 }
+
+@media(max-width:620px){
+  .space-profile{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .profile-avatar-wrap{
+    width:100%;
+    align-items:flex-start;
+  }
+  .avatar-actions{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    width:100%;
+    margin-top:10px;
+  }
+  .avatar-actions .avatar-label,
+  .avatar-actions button,
+  #showRenameBtn{
+    width:100%;
+    justify-content:center;
+    text-align:center;
+  }
+  #showRenameBtn{
+    margin-top:8px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -362,7 +391,7 @@ h1{
                   <label class="avatar-label">📷 Choisir une photo
                     <input id="avatarInput" type="file" accept="image/*">
                   </label>
-                  <button id="removeAvatarBtn" class="remove hidden" type="button">🗑️ Retirer</button>
+                  <button id="removeAvatarBtn" class="remove hidden" type="button">🗑️ Supprimer la photo</button>
                 </div>
               </div>
             </div>
