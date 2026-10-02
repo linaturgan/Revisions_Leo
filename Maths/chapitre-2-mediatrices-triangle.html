@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maths 5e · Chapitre 2</title>
+<style>
+:root{--bg:#f7f9ff;--card:#fff;--ink:#24324a;--muted:#667085;--blue:#4f7cff;--blue2:#eaf0ff;--green:#28a36a;--green2:#eaf8f1;--red:#dc4c64;--red2:#fff0f3;--orange:#f59e0b;--purple2:#f2edff;--border:#dce4f3;--shadow:0 8px 24px rgba(61,78,119,.10)}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+header{background:linear-gradient(135deg,#5a7cff,#8f6ae8);color:#fff;padding:22px 16px 28px}.header-inner{max-width:960px;margin:auto}
+.back{display:inline-block;color:#fff;text-decoration:none;font-weight:700;margin-bottom:10px;background:rgba(255,255,255,.17);padding:8px 12px;border-radius:12px}
+h1{margin:4px 0;font-size:clamp(1.65rem,5vw,2.35rem);line-height:1.18}.subtitle{margin:0;opacity:.95}
+main{max-width:960px;margin:-14px auto 50px;padding:0 14px}.card{background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:1.35rem}.note{border-left:5px solid var(--blue);background:var(--blue2);padding:12px 14px;border-radius:10px;margin:10px 0}
+.rule{background:#fff9e8;border:1px solid #f4dc96;border-radius:14px;padding:12px;margin:8px 0}.exercise{border:2px solid var(--border);border-radius:18px;padding:16px;margin-top:12px}
+.question{font-size:1.12rem;font-weight:700;margin-bottom:12px}.answers{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+button,input{font:inherit}button{border:0;border-radius:13px;padding:11px 14px;cursor:pointer;font-weight:700}.answer-btn{background:#f4f6fb;color:var(--ink);border:2px solid var(--border)}
+.answer-btn:disabled{cursor:default;opacity:.95}.primary{background:var(--blue);color:#fff}.secondary{background:#e9edf5;color:var(--ink)}
+.good{background:var(--green2)!important;border-color:var(--green)!important;color:#106c43!important}.bad{background:var(--red2)!important;border-color:var(--red)!important;color:#a12c41!important}
+.feedback{margin-top:12px;padding:11px 13px;border-radius:12px;font-weight:700;display:none}.feedback.ok{display:block;background:var(--green2);color:#116c44}.feedback.ko{display:block;background:var(--red2);color:#9c2a40}
+input[type=number]{width:110px;border:2px solid var(--border);border-radius:12px;padding:9px 10px;background:#fff}.inline-fields{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.scorebar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:10px}.score{font-weight:800;background:var(--purple2);color:#6542a8;padding:8px 12px;border-radius:999px}
+.progress{height:10px;width:100%;background:#e9edf5;border-radius:99px;overflow:hidden;margin:8px 0 2px}.progress>div{height:100%;background:linear-gradient(90deg,#5a7cff,#7f68df);width:0%;transition:.3s}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.small{font-size:.92rem;color:var(--muted)}.bigcalc{font-size:1.35rem;text-align:center;background:#f7f9ff;border-radius:14px;padding:12px;margin:8px 0 14px}
+.figure-wrap{display:grid;grid-template-columns:minmax(260px,1fr) minmax(220px,.8fr);gap:14px;align-items:center}svg{width:100%;height:auto;background:#fbfcff;border:2px solid var(--border);border-radius:18px}
+@media(max-width:700px){.figure-wrap{grid-template-columns:1fr}}@media(max-width:520px){.card{padding:14px}.answers{grid-template-columns:1fr}.inline-fields input{width:90px}}
+</style>
+</head>
+<body data-storage-key="leo-maths-5e-ch2">
+<header><div class="header-inner"><a class="back" href="../index.html#maths">← Retour aux Maths</a><h1>Maths 5e · Chapitre 2</h1><p class="subtitle">Médiatrice d'un segment · Médiatrices d'un triangle · Cercle circonscrit</p></div></header>
+<main>
+<section class="card">
+<h2>🧠 L'essentiel</h2>
+<div class="note"><b>Médiatrice d'un segment :</b> droite perpendiculaire au segment qui passe par son milieu.</div>
+<div class="rule">Tout point de la médiatrice de [AB] est à la même distance de A et de B.</div>
+<div class="rule">Dans un triangle, les trois médiatrices se coupent au <b>centre du cercle circonscrit</b>.</div>
+</section>
+<section class="card">
+<div class="scorebar"><h2>🎯 Exercices</h2><div class="score">Score : <span id="score">0</span>/<span id="done">0</span> · Record : <span id="bestScore">0</span></div></div>
+<div class="progress"><div id="prog"></div></div>
+<div class="exercise figure-wrap">
+<div>
+<svg id="geo1" viewBox="0 0 520 350" aria-label="Triangle et droite à étudier"></svg>
+</div>
+<div>
+<div class="question" id="q1">La droite bleue est-elle la médiatrice du côté indiqué ?</div>
+<div class="answers" id="a1"></div>
+<div class="feedback" id="f1"></div>
+<p class="small">Observe les codages : pour être une médiatrice, la droite doit être <b>perpendiculaire</b> au côté et passer par son <b>milieu</b>.</p>
+</div>
+</div>
+<div class="exercise"><div class="question" id="q2"></div><div class="answers" id="a2"></div><div class="feedback" id="f2"></div></div>
+<div class="exercise"><div class="question">Les trois médiatrices d'un triangle se coupent en un point qui est…</div><div class="answers" id="a3"></div><div class="feedback" id="f3"></div></div>
+<div class="actions"><button class="primary" onclick="newRound()">🔄 Nouveaux exercices</button><button class="secondary" onclick="resetScore()">Remettre le score à zéro</button></div>
+</section>
+</main>
+<script>
+const Store={key:document.body.dataset.storageKey,load(){try{return JSON.parse(localStorage.getItem(this.key))||{best:0}}catch(e){return{best:0}}},save(d){localStorage.setItem(this.key,JSON.stringify(d))}};
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function feedback(el,ok,msg){el.className="feedback "+(ok?"ok":"ko");el.innerHTML=msg}
+function initBest(){const d=Store.load();const e=document.getElementById("bestScore");if(e)e.textContent=d.best||0}
+function saveBest(v){const d=Store.load();if(v>d.best){d.best=v;Store.save(d)}document.getElementById("bestScore").textContent=d.best||0}
+
+let score=0,done=0;const se=()=>document.getElementById("score"),de=()=>document.getElementById("done"),pg=()=>document.getElementById("prog");
+function bump(ok){done++;if(ok)score++;se().textContent=score;de().textContent=done;pg().style.width=Math.min(100,(done%10)*10)+"%";saveBest(score)}
+function resetScore(){score=0;done=0;se().textContent=0;de().textContent=0;pg().style.width="0%";newRound()}
+function buttons(id,opts,good,fid,msg){let box=document.getElementById(id),f=document.getElementById(fid);box.innerHTML="";f.className="feedback";shuffle(opts).forEach(t=>{let b=document.createElement("button");b.className="answer-btn";b.textContent=t;b.onclick=()=>{[...box.children].forEach(x=>{x.disabled=true;if(x.textContent===good)x.classList.add("good")});let ok=t===good;if(!ok)b.classList.add("bad");feedback(f,ok,(ok?"✅ ":"❌ ")+msg);bump(ok)};box.appendChild(b)})}
+function svgEl(tag,attrs={}){let e=document.createElementNS("http://www.w3.org/2000/svg",tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e}
+function gen1(){
+  const svg=document.getElementById("geo1"); svg.innerHTML="";
+  const pts={A:{x:95,y:280},B:{x:420,y:280},C:{x:rand(190,330),y:rand(55,120)}};
+  const side=["AB","AC","BC"][rand(0,2)];
+  const cases=["true","perpOnly","midOnly"][rand(0,2)];
+  const good=cases==="true"?"Oui":"Non";
+  const names={AB:["A","B"],AC:["A","C"],BC:["B","C"]};
+  const [n1,n2]=names[side],P=pts[n1],Q=pts[n2];
+  // triangle
+  [["A","B"],["B","C"],["C","A"]].forEach(([u,v])=>svg.appendChild(svgEl("line",{x1:pts[u].x,y1:pts[u].y,x2:pts[v].x,y2:pts[v].y,stroke:"#34445e","stroke-width":4})));
+  Object.entries(pts).forEach(([n,p])=>{svg.appendChild(svgEl("circle",{cx:p.x,cy:p.y,r:6,fill:"#34445e"}));let t=svgEl("text",{x:p.x+10,y:p.y-8,"font-size":23,fill:"#24324a"});t.textContent=n;svg.appendChild(t)});
+  const mx=(P.x+Q.x)/2,my=(P.y+Q.y)/2,dx=Q.x-P.x,dy=Q.y-P.y,len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
+  let cx=mx,cy=my,angShift=0;
+  if(cases==="perpOnly"){cx=mx+ux*rand(35,65);cy=my+uy*rand(35,65)}
+  if(cases==="midOnly"){angShift=(rand(0,1)?1:-1)*0.38}
+  let vx=nx,vy=ny;
+  if(cases==="midOnly"){vx=nx*Math.cos(angShift)-ny*Math.sin(angShift);vy=nx*Math.sin(angShift)+ny*Math.cos(angShift)}
+  const L=190;
+  svg.appendChild(svgEl("line",{x1:cx-vx*L,y1:cy-vy*L,x2:cx+vx*L,y2:cy+vy*L,stroke:"#4f7cff","stroke-width":5,"stroke-dasharray":"11 8"}));
+  // midpoint marks only when line passes through midpoint
+  if(cases!=="perpOnly"){
+    const s=12,g=24;
+    [-1,1].forEach(sign=>{
+      const px=mx+ux*g*sign,py=my+uy*g*sign;
+      svg.appendChild(svgEl("line",{x1:px-nx*s/2,y1:py-ny*s/2,x2:px+nx*s/2,y2:py+ny*s/2,stroke:"#815acb","stroke-width":4}));
+    });
+  }
+  // right-angle marker only when perpendicular
+  if(cases!=="midOnly"){
+    const a=18;
+    const p1=[cx+ux*a,cy+uy*a], p2=[p1[0]+vx*a,p1[1]+vy*a], p3=[cx+vx*a,cy+vy*a];
+    svg.appendChild(svgEl("polyline",{points:`${cx},${cy} ${p1[0]},${p1[1]} ${p2[0]},${p2[1]} ${p3[0]},${p3[1]}`,fill:"none",stroke:"#f59e0b","stroke-width":4}));
+  }
+  q1.innerHTML=`La droite bleue est-elle la <b>médiatrice de [${side}]</b> ?`;
+  let msg=cases==="true"
+    ?`Oui : elle est perpendiculaire à [${side}] et passe par son milieu.`
+    :cases==="perpOnly"
+      ?`Non : elle est bien perpendiculaire à [${side}], mais elle ne passe pas par son milieu.`
+      :`Non : elle passe bien par le milieu de [${side}], mais elle n'est pas perpendiculaire à ce côté.`;
+  const box=a1; box.innerHTML=""; f1.className="feedback";
+  ["Oui","Non"].forEach(t=>{let b=document.createElement("button");b.className="answer-btn";b.textContent=t;b.onclick=()=>{
+    [...box.children].forEach(x=>{x.disabled=true;if(x.textContent===good)x.classList.add("good")});
+    const ok=t===good;if(!ok)b.classList.add("bad");feedback(f1,ok,(ok?"✅ ":"❌ ")+msg);bump(ok);setTimeout(gen1,1200)
+  };box.appendChild(b)});
+}
+function gen2(){let mode=rand(0,1);if(mode===0){q2.innerHTML="Le point <b>M</b> appartient à la médiatrice de [AB]. Que peut-on affirmer ?";buttons("a2",["MA = MB","MA > MB","M est le milieu de [AB]"],"MA = MB","f2","Tout point de la médiatrice est à égale distance de A et de B.")}else{q2.innerHTML="On sait que <b>PA = PB</b>. Où se trouve nécessairement le point P ?";buttons("a2",["Sur la médiatrice de [AB]","Sur [AB]","Au milieu de [AB]"],"Sur la médiatrice de [AB]","f2","Un point équidistant de A et de B appartient à la médiatrice de [AB].")}}
+function gen3(){buttons("a3",["le centre du cercle circonscrit","le centre de gravité","un sommet du triangle"],"le centre du cercle circonscrit","f3","Ce point est à la même distance des trois sommets.")}
+function newRound(){gen1();gen2();gen3()}newRound();
+
+document.addEventListener("DOMContentLoaded",initBest);
+</script>
+</body></html>

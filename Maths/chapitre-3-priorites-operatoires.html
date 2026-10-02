@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maths 5e · Chapitre 3</title>
+<style>
+:root{--bg:#f7f9ff;--card:#fff;--ink:#24324a;--muted:#667085;--blue:#4f7cff;--blue2:#eaf0ff;--green:#28a36a;--green2:#eaf8f1;--red:#dc4c64;--red2:#fff0f3;--orange:#f59e0b;--purple2:#f2edff;--border:#dce4f3;--shadow:0 8px 24px rgba(61,78,119,.10)}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+header{background:linear-gradient(135deg,#5a7cff,#8f6ae8);color:#fff;padding:22px 16px 28px}.header-inner{max-width:960px;margin:auto}
+.back{display:inline-block;color:#fff;text-decoration:none;font-weight:700;margin-bottom:10px;background:rgba(255,255,255,.17);padding:8px 12px;border-radius:12px}
+h1{margin:4px 0;font-size:clamp(1.65rem,5vw,2.35rem);line-height:1.18}.subtitle{margin:0;opacity:.95}
+main{max-width:960px;margin:-14px auto 50px;padding:0 14px}.card{background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:1.35rem}.note{border-left:5px solid var(--blue);background:var(--blue2);padding:12px 14px;border-radius:10px;margin:10px 0}
+.rule{background:#fff9e8;border:1px solid #f4dc96;border-radius:14px;padding:12px;margin:8px 0}.exercise{border:2px solid var(--border);border-radius:18px;padding:16px;margin-top:12px}
+.question{font-size:1.12rem;font-weight:700;margin-bottom:12px}.answers{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+button,input{font:inherit}button{border:0;border-radius:13px;padding:11px 14px;cursor:pointer;font-weight:700}.answer-btn{background:#f4f6fb;color:var(--ink);border:2px solid var(--border)}
+.answer-btn:disabled{cursor:default;opacity:.95}.primary{background:var(--blue);color:#fff}.secondary{background:#e9edf5;color:var(--ink)}
+.good{background:var(--green2)!important;border-color:var(--green)!important;color:#106c43!important}.bad{background:var(--red2)!important;border-color:var(--red)!important;color:#a12c41!important}
+.feedback{margin-top:12px;padding:11px 13px;border-radius:12px;font-weight:700;display:none}.feedback.ok{display:block;background:var(--green2);color:#116c44}.feedback.ko{display:block;background:var(--red2);color:#9c2a40}
+input[type=number]{width:110px;border:2px solid var(--border);border-radius:12px;padding:9px 10px;background:#fff}.inline-fields{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.scorebar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;margin-bottom:10px}.score{font-weight:800;background:var(--purple2);color:#6542a8;padding:8px 12px;border-radius:999px}
+.progress{height:10px;width:100%;background:#e9edf5;border-radius:99px;overflow:hidden;margin:8px 0 2px}.progress>div{height:100%;background:linear-gradient(90deg,#5a7cff,#7f68df);width:0%;transition:.3s}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.small{font-size:.92rem;color:var(--muted)}.bigcalc{font-size:1.35rem;text-align:center;background:#f7f9ff;border-radius:14px;padding:12px;margin:8px 0 14px}
+.figure-wrap{display:grid;grid-template-columns:minmax(260px,1fr) minmax(220px,.8fr);gap:14px;align-items:center}svg{width:100%;height:auto;background:#fbfcff;border:2px solid var(--border);border-radius:18px}
+@media(max-width:700px){.figure-wrap{grid-template-columns:1fr}}@media(max-width:520px){.card{padding:14px}.answers{grid-template-columns:1fr}.inline-fields input{width:90px}}
+</style>
+</head>
+<body data-storage-key="leo-maths-5e-ch3">
+<header><div class="header-inner"><a class="back" href="../index.html#maths">← Retour aux Maths</a><h1>Maths 5e · Chapitre 3</h1><p class="subtitle">Priorités opératoires · Parenthèses · Calcul mental</p></div></header>
+<main>
+<section class="card">
+<h2>🧠 L'essentiel</h2>
+<div class="rule"><b>1.</b> Parenthèses d'abord.</div><div class="rule"><b>2.</b> Puis multiplications et divisions, de gauche à droite.</div><div class="rule"><b>3.</b> Enfin additions et soustractions, de gauche à droite.</div>
+<div class="note">À priorité égale, on calcule de gauche à droite.</div>
+</section>
+<section class="card">
+<div class="scorebar"><h2>🎯 Exercices</h2><div class="score">Score : <span id="score">0</span>/<span id="done">0</span> · Record : <span id="bestScore">0</span></div></div>
+<div class="progress"><div id="prog"></div></div>
+<div class="exercise"><div class="question">Calcule :</div><div class="bigcalc" id="expr1"></div><div class="inline-fields"><label>Résultat <input id="res1" type="number"></label><button class="primary" onclick="checkCalc()">Vérifier</button></div><div class="feedback" id="f1"></div></div>
+<div class="exercise"><div class="question">Quelle opération faut-il effectuer en premier ?</div><div class="bigcalc" id="expr2"></div><div class="answers" id="a2"></div><div class="feedback" id="f2"></div></div>
+<div class="exercise"><div class="question">Quelle ligne de calcul est correcte ?</div><div class="answers" id="a3"></div><div class="feedback" id="f3"></div></div>
+<div class="actions"><button class="primary" onclick="newRound()">🔄 Nouveaux exercices</button><button class="secondary" onclick="resetScore()">Remettre le score à zéro</button></div>
+</section>
+</main>
+<script>
+const Store={key:document.body.dataset.storageKey,load(){try{return JSON.parse(localStorage.getItem(this.key))||{best:0}}catch(e){return{best:0}}},save(d){localStorage.setItem(this.key,JSON.stringify(d))}};
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function feedback(el,ok,msg){el.className="feedback "+(ok?"ok":"ko");el.innerHTML=msg}
+function initBest(){const d=Store.load();const e=document.getElementById("bestScore");if(e)e.textContent=d.best||0}
+function saveBest(v){const d=Store.load();if(v>d.best){d.best=v;Store.save(d)}document.getElementById("bestScore").textContent=d.best||0}
+
+let score=0,done=0,c={};const se=()=>document.getElementById("score"),de=()=>document.getElementById("done"),pg=()=>document.getElementById("prog");
+function bump(ok){done++;if(ok)score++;se().textContent=score;de().textContent=done;pg().style.width=Math.min(100,(done%10)*10)+"%";saveBest(score)}
+function resetScore(){score=0;done=0;se().textContent=0;de().textContent=0;pg().style.width="0%";newRound()}
+function genCalc(){let a=rand(2,12),b=rand(2,9),d=rand(2,10);if(rand(0,1)){c.calc={ans:a+b*d,why:`On calcule d'abord ${b} × ${d} = ${b*d}, puis ${a} + ${b*d} = ${a+b*d}.`};expr1.textContent=`${a} + ${b} × ${d}`}else{c.calc={ans:(a+b)*d,why:`Parenthèses d'abord : ${a} + ${b} = ${a+b}, puis ${a+b} × ${d} = ${(a+b)*d}.`};expr1.textContent=`(${a} + ${b}) × ${d}`}res1.value="";f1.className="feedback"}
+function checkCalc(){let ok=Number(res1.value)===c.calc.ans;feedback(f1,ok,ok?`✅ Bravo ! Résultat : ${c.calc.ans}.`:`❌ ${c.calc.why}`);bump(ok);setTimeout(genCalc,1000)}
+function genFirst(){let a=rand(2,9),b=rand(2,9),d=rand(2,9);let parenth=rand(0,1),good,opts,msg;if(parenth){expr2.textContent=`${a} × (${b} + ${d})`;good=`${b} + ${d}`;opts=[good,`${a} × ${b}`,`${a} + ${b}`];msg="Les parenthèses sont prioritaires."}else{expr2.textContent=`${a} + ${b} × ${d}`;good=`${b} × ${d}`;opts=[good,`${a} + ${b}`,`${a} × ${d}`];msg="La multiplication est prioritaire sur l'addition."}a2.innerHTML="";f2.className="feedback";shuffle(opts).forEach(t=>{let bt=document.createElement("button");bt.className="answer-btn";bt.textContent=t;bt.onclick=()=>{[...a2.children].forEach(x=>{x.disabled=true;if(x.textContent===good)x.classList.add("good")});let ok=t===good;if(!ok)bt.classList.add("bad");feedback(f2,ok,(ok?"✅ ":"❌ ")+msg);bump(ok);setTimeout(genFirst,1000)};a2.appendChild(bt)})}
+function genEq(){let a=rand(2,9),b=rand(2,9),d=rand(2,9),ans=a+b*d;let good=`${a} + ${b} × ${d} = ${a} + ${b*d} = ${ans}`,bad1=`${a} + ${b} × ${d} = ${a+b} × ${d} = ${(a+b)*d}`,bad2=`${a} + ${b} × ${d} = ${a+b+d}`;a3.innerHTML="";f3.className="feedback";shuffle([good,bad1,bad2]).forEach(t=>{let bt=document.createElement("button");bt.className="answer-btn";bt.textContent=t;bt.onclick=()=>{[...a3.children].forEach(x=>{x.disabled=true;if(x.textContent===good)x.classList.add("good")});let ok=t===good;if(!ok)bt.classList.add("bad");feedback(f3,ok,ok?"✅ Oui, la multiplication est faite avant l'addition.":"❌ Il faut faire la multiplication avant l'addition.");bump(ok);setTimeout(genEq,1000)};a3.appendChild(bt)})}
+function newRound(){genCalc();genFirst();genEq()}newRound();
+
+document.addEventListener("DOMContentLoaded",initBest);
+</script>
+</body></html>
