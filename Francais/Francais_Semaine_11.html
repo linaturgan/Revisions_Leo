@@ -1,0 +1,134 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="revision-subject" content="Français"><meta name="revision-activity" content="Semaine 11"><title>Français – Semaine 11 – Léo</title><style>
+:root{
+  --ink:#172033;
+  --muted:#677189;
+  --blue:#246bfd;
+  --pink:#e35d7a;
+  --green:#198754;
+  --red:#e53935;
+  --gold:#ffb703;
+  --line:#dde5f3;
+  --soft:#f5f7fb;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 8%, #ffe9ef 0 8%, transparent 28%),
+    radial-gradient(circle at 90% 12%, #dff3ff 0 9%, transparent 29%),
+    linear-gradient(135deg,#fff9fb,#f3f7ff);
+  min-height:100vh;
+}
+.wrap{max-width:980px;margin:auto;padding:20px}
+.home-link{
+  display:inline-flex;align-items:center;gap:8px;
+  text-decoration:none;color:var(--ink);background:#fff;
+  border:1px solid #dbe3f0;border-radius:999px;
+  padding:9px 13px;font-weight:800;font-size:14px;
+  box-shadow:0 6px 18px rgba(41,61,102,.08);
+  margin-bottom:14px;
+}
+.home-link:hover{transform:translateY(-1px);box-shadow:0 9px 22px rgba(41,61,102,.12)}
+h1{margin:0 0 6px;font-size:clamp(28px,5vw,46px)}
+.sub{color:var(--muted);margin-bottom:18px;line-height:1.45}
+.toolbar,.subtoolbar{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 18px}
+button{
+  border:0;border-radius:14px;padding:11px 15px;font-weight:800;cursor:pointer;
+  background:#e9eefb;color:var(--ink);font-size:15px;transition:.15s;
+}
+button:hover{transform:translateY(-1px)}
+button.primary,.toolbar .mode-btn.active,.subtoolbar .sub-btn.active{background:var(--blue);color:#fff}
+button.pink{background:var(--pink);color:#fff}
+button:disabled{opacity:.55;cursor:default;transform:none}
+.panel{
+  background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:22px;
+  padding:18px;box-shadow:0 12px 34px rgba(41,61,102,.08)
+}
+.hidden{display:none!important}
+.scorebar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px;font-weight:800}
+.lesson-title{font-size:clamp(23px,3.2vw,30px);font-weight:950;line-height:1.15;letter-spacing:-.3px}
+.lesson-title.conj-title{color:#c92f5e}
+.lesson-title.vocab-title{color:#1667d9}
+.badge{background:#fff0f4;color:#9a3650;border-radius:999px;padding:5px 10px;font-weight:900;font-size:13px}
+.progress{height:10px;background:#e8edf7;border-radius:999px;overflow:hidden;flex:1;min-width:80px}
+.progress>div{height:100%;width:0;background:var(--blue);transition:.25s}
+.helper{color:var(--muted);line-height:1.45;margin:0 0 16px}
+
+/* CONJUGAISON */
+.verb-switch{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.verb-switch button.active{background:var(--pink);color:#fff}
+.conj-card{max-width:720px;margin:auto;background:#fff;border:1px solid #e1e7f0;border-radius:18px;padding:16px}
+.verb-title{font-size:27px;font-weight:900;text-align:center;margin:0 0 14px}
+.conj-grid{display:grid;gap:10px}
+.conj-row{display:grid;grid-template-columns:145px 1fr auto;gap:10px;align-items:center}
+.subject{font-weight:900;text-align:right;font-size:18px}
+.text-input{
+  width:100%;border:2px solid #dfe5ef;border-radius:13px;padding:12px 13px;
+  font-size:18px;font-weight:700;color:var(--ink);background:#fff;outline:none;
+}
+.text-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(36,107,253,.10)}
+.text-input.correct{border-color:#24a148;background:#edfff2}
+.text-input.wrong{border-color:var(--red);background:#fff1f0}
+.conj-input:disabled{opacity:1;color:var(--ink);-webkit-text-fill-color:var(--ink);cursor:not-allowed}
+.correction{font-size:14px;font-weight:900;min-width:105px}
+.correction.ok{color:var(--green)}
+.correction.no{color:#b52824}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.result{text-align:center;font-weight:900;min-height:28px;margin-top:12px}
+
+/* VOCABULAIRE */
+.vocab-box{max-width:760px;margin:auto;text-align:center}
+.audio-button{
+  width:112px;height:112px;border-radius:50%;font-size:47px;background:#eef4ff;
+  border:3px solid #dbe7ff;display:grid;place-items:center;margin:8px auto 16px;
+}
+.audio-button:hover{background:#e4eeff}
+.question{font-size:22px;font-weight:900;margin:8px 0 15px}
+.big-input{max-width:480px;margin:auto;font-size:24px;text-align:center;padding:14px}
+.answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;max-width:650px;margin:auto}
+.answer{
+  padding:15px;border-radius:14px;background:#fff;border:2px solid #e2e7f0;
+  text-align:center;font-size:18px;font-weight:800
+}
+.answer.correct{border-color:#24a148;background:#ebfff0}
+.answer.wrong{border-color:var(--red);background:#fff0ef}
+.feedback{min-height:30px;font-weight:900;margin:12px 0}
+.word-correction{font-size:24px;font-weight:900;color:var(--green)}
+.end-emoji{font-size:44px}
+.note{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.4}
+
+@media(max-width:650px){
+  .wrap{padding:14px}
+  .panel{padding:14px}
+  .scorebar{flex-wrap:wrap}
+  .conj-row{grid-template-columns:92px 1fr}
+  .subject{font-size:15px}
+  .correction{grid-column:2;text-align:left;min-width:0;margin-top:-5px}
+  .answers{grid-template-columns:1fr}
+}
+
+select{max-width:100%;padding:12px;border:1px solid #dde5f3;border-radius:12px;background:white;font:inherit} .selectors{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}.selectors label{display:grid;gap:6px;font-weight:700}details{margin:18px 0}summary{cursor:pointer;font-weight:800;padding:10px}.word-list{columns:2;line-height:1.9}.week-nav{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:22px 0}.week-nav a{color:#246bfd}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #246bfd;outline-offset:3px}.conj-row{grid-template-columns:130px minmax(0,1fr) minmax(100px,auto)}@media(max-width:650px){.conj-row{grid-template-columns:85px minmax(0,1fr)}.word-list{columns:1}}</style></head><body><main class="wrap"><a class="home-link" href="../index.html#francais">← 🏠 Retour à l’accueil</a><h1>📖 Français – Semaine 11</h1><p class="sub">Vocabulaire et conjugaison du livret : la fable (3).</p><div class="toolbar"><button id="tab-conj" class="primary" onclick="tab('conj')">✍️ Conjugaisons</button><button id="tab-voc" onclick="tab('voc')">🔤 Vocabulaire</button></div><section id="conj" class="panel"><h2 class="lesson-title conj-title">✍️ Conjugaisons</h2><p class="helper">Choisis le verbe et le temps. Écris la forme conjuguée sans le pronom ; aux temps composés, écris l’auxiliaire et le participe passé.</p><div class="selectors"><label>Verbe<select id="verb"></select></label><label>Temps<select id="tense"></select></label><label id="gender-label" hidden>Accord de venir<select id="gender"><option value="m">Masculin</option><option value="f">Féminin</option></select></label></div><p id="agreement" class="helper"></p><div class="conj-card"><h3 id="verb-title" class="verb-title"></h3><form id="conj-form"><div id="grid" class="conj-grid"></div><div class="actions"><button id="validate" class="primary">✅ Valider</button><button type="button" onclick="loadExercise()">↺ Recommencer</button></div></form><p id="conj-result" class="result" aria-live="polite"></p><details><summary>📖 Revoir la conjugaison</summary><div id="lesson"></div></details></div></section><section id="voc" class="panel hidden"><h2 class="lesson-title vocab-title">🔤 la fable (3)</h2><p class="helper">QCM : retrouve la bonne orthographe. Dictée audio : écris le mot ou l’expression avec son déterminant lorsqu’il est prononcé. Les accents comptent.</p><details id="word-lesson"><summary>📖 Apprendre les 20 mots et expressions</summary><ol class="word-list"><li>Un lièvre</li><li>Personnifier</li><li>Vaniteux</li><li>Un défaut</li><li>Critiquer</li><li>Animalier</li><li>Une grenouille</li><li>Dénoncer</li><li>Ridicule</li><li>Un recueil</li><li>Méditer</li><li>Prétentieux</li><li>Un roseau</li><li>Piéger</li><li>Rapide</li><li>Le chêne</li><li>Illustrer</li><li>Humain</li><li>La ruse</li><li>Démontrer</li></ol></details><div class="subtoolbar"><button id="qcm" class="primary" onclick="startVocab('qcm')">🎯 QCM orthographe</button><button id="audio" onclick="startVocab('audio')">🔊 Dictée audio</button></div><div class="scorebar"><span id="progress"></span><span id="score" class="badge"></span></div><div class="progress"><div id="bar"></div></div><div id="vocab-box" class="vocab-box"></div></section><p class="note">Source : livret « RITUELS 5E », semaine 11. Les exercices de cette page portent sur le vocabulaire et la conjugaison.</p><nav class="week-nav" aria-label="Semaines"><a href="Francais_Semaine_10.html">← Semaine précédente</a><a href="Francais_Semaine_12.html">Semaine suivante →</a></nav></main><script>const DATA={"n": 11, "theme": "la fable (3)", "entries": ["Un lièvre", "Personnifier", "Vaniteux", "Un défaut", "Critiquer", "Animalier", "Une grenouille", "Dénoncer", "Ridicule", "Un recueil", "Méditer", "Prétentieux", "Un roseau", "Piéger", "Rapide", "Le chêne", "Illustrer", "Humain", "La ruse", "Démontrer"], "words": [{"text": "Un lièvre", "hint": "", "wrong": ["Un liévre", "Un liièvre", "Un lièèvre"]}, {"text": "Personnifier", "hint": "", "wrong": ["Personifier", "Peersonnifier", "Perrsonnifier"]}, {"text": "Vaniteux", "hint": "", "wrong": ["Vaaniteux", "Vanniteux", "Vaniiteux"]}, {"text": "Un défaut", "hint": "", "wrong": ["Un dèfaut", "Un dééfaut", "Un déffaut"]}, {"text": "Critiquer", "hint": "", "wrong": ["Critiker", "Crritiquer", "Criitiquer"]}, {"text": "Animalier", "hint": "", "wrong": ["Annimalier", "Aniimalier", "Animmalier"]}, {"text": "Une grenouille", "hint": "", "wrong": ["Une grenouile", "Une grrenouille", "Une greenouille"]}, {"text": "Dénoncer", "hint": "", "wrong": ["Dènoncer", "Déénoncer", "Dénnoncer"]}, {"text": "Ridicule", "hint": "", "wrong": ["Riidicule", "Riddicule", "Ridiicule"]}, {"text": "Un recueil", "hint": "", "wrong": ["Un reecueil", "Un reccueil", "Un recuueil"]}, {"text": "Méditer", "hint": "", "wrong": ["Mèditer", "Mééditer", "Médditer"]}, {"text": "Prétentieux", "hint": "", "wrong": ["Prètentieux", "Prrétentieux", "Préétentieux"]}, {"text": "Un roseau", "hint": "", "wrong": ["Un roso", "Un rooseau", "Un rosseau"]}, {"text": "Piéger", "hint": "", "wrong": ["Pièger", "Piiéger", "Piééger"]}, {"text": "Rapide", "hint": "", "wrong": ["Raapide", "Rappide", "Rapiide"]}, {"text": "Le chêne", "hint": "", "wrong": ["Le chéne", "Le chhêne", "Le chêêne"]}, {"text": "Illustrer", "hint": "", "wrong": ["Ilustrer", "Illuustrer", "Illusstrer"]}, {"text": "Humain", "hint": "", "wrong": ["Huumain", "Hummain", "Humaain"]}, {"text": "La ruse", "hint": "", "wrong": ["La ruuse", "La russe", "La rusee"]}, {"text": "Démontrer", "hint": "", "wrong": ["Dèmontrer", "Déémontrer", "Démmontrer"]}], "bilan": false, "exercises": [{"verb": "pouvoir", "key": "present", "title": "Indicatif · présent", "forms": [["peux"], ["peux"], ["peut"], ["pouvons"], ["pouvez"], ["peuvent"]], "agreement": false}, {"verb": "pouvoir", "key": "imparfait", "title": "Indicatif · imparfait", "forms": [["pouvais"], ["pouvais"], ["pouvait"], ["pouvions"], ["pouviez"], ["pouvaient"]], "agreement": false}, {"verb": "pouvoir", "key": "passe", "title": "Indicatif · passé simple", "forms": [["pus"], ["pus"], ["put"], ["pûmes"], ["pûtes"], ["purent"]], "agreement": false}]};
+const $=id=>document.getElementById(id), norm=s=>s.normalize('NFC').trim().toLocaleLowerCase('fr').replace(/[’‘]/g,"'").replace(/œ/g,'oe').replace(/\s+/g,' '), esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function record(data){window.SuiviLeo?.recordAttempt(data)}
+function tab(id){for(const x of ['conj','voc']){$(x).classList.toggle('hidden',x!==id);$('tab-'+x).classList.toggle('primary',x===id)}if('speechSynthesis'in window)speechSynthesis.cancel()}
+const verbs=[...new Set(DATA.exercises.map(e=>e.verb))];$('verb').innerHTML=verbs.map(v=>`<option>${esc(v)}</option>`).join('');
+let exercise,expected,conjDone=false;
+function chooseVerb(){const choices=DATA.exercises.filter(e=>e.verb===$('verb').value);$('tense').innerHTML=choices.map(e=>`<option value="${e.key}">${e.title}</option>`).join('');loadExercise()}
+function loadExercise(){exercise=DATA.exercises.find(e=>e.verb===$('verb').value&&e.key===$('tense').value);conjDone=false;const imperative=exercise.key.startsWith('imperatif'),feminine=$('gender').value==='f';$('gender-label').hidden=!exercise.agreement;$('agreement').textContent=exercise.agreement?'Accorde le participe passé avec le sujet. Ici, « nous » et « vous » désignent plusieurs personnes.':imperative?'À l’impératif, le pronom entre parenthèses sert de repère : ne l’écris pas.':'';
+expected=exercise.forms.map((forms,i)=>forms.map(form=>{if(exercise.agreement){form+=feminine?'e':'';if(imperative?i>0:i>2)form+='s'}return form}));
+let subjects=imperative?['(tu)','(nous)','(vous)']:['je / j’','tu',feminine&&exercise.agreement?'elle':'il / elle / on','nous','vous',feminine&&exercise.agreement?'elles':'ils / elles'];if(exercise.agreement&&!feminine&&!imperative){subjects[2]='il';subjects[5]='ils'}if(exercise.key==='subjonctif')subjects=['que je / j’','que tu','qu’il / elle','que nous','que vous','qu’ils / elles'];
+$('verb-title').textContent=exercise.verb+' — '+exercise.title;$('grid').innerHTML=expected.map((_,i)=>`<div class="conj-row"><label class="subject" for="answer-${i}">${subjects[i]}</label><input id="answer-${i}" class="text-input" autocomplete="off" autocapitalize="off" spellcheck="false" required><span id="correction-${i}" class="correction"></span></div>`).join('');$('conj-result').textContent='';$('validate').disabled=false;$('lesson').innerHTML=expected.map((a,i)=>`<p><b>${subjects[i]}</b> ${a.map(esc).join(' / ')}</p>`).join('');$('lesson').parentElement.open=false;}
+$('verb').onchange=chooseVerb;$('tense').onchange=loadExercise;$('gender').onchange=loadExercise;
+$('conj-form').onsubmit=e=>{e.preventDefault();if(conjDone)return;let score=0;expected.forEach((forms,i)=>{const input=$('answer-'+i),ok=forms.some(f=>norm(f)===norm(input.value));score+=ok;input.classList.add(ok?'correct':'wrong');input.disabled=true;$('correction-'+i).textContent=ok?'✓':forms.join(' / ');$('correction-'+i).className='correction '+(ok?'ok':'no')});conjDone=true;$('validate').disabled=true;$('conj-result').textContent=`${score} / ${expected.length} — ${score===expected.length?'Tout est juste !':'Relis les corrections, puis recommence.'}`;record({activity:`Conjugaison – ${exercise.verb} – ${exercise.title}`,mode:'saisie',score,maxScore:expected.length,details:{semaine:DATA.n,verbe:exercise.verb,temps:exercise.title}})};
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+let mode='qcm',queue=[],pos=0,score=0,errors=[],answered=false;
+function startVocab(m,items=DATA.words){if('speechSynthesis'in window)speechSynthesis.cancel();mode=m;queue=shuffle(items);pos=0;score=0;errors=[];$('word-lesson').open=false;for(const x of ['qcm','audio'])$(x).classList.toggle('primary',x===m);renderWord()}
+function speak(){if(!('speechSynthesis'in window)){ $('feedback').textContent='La lecture audio n’est pas disponible dans ce navigateur. Utilise le QCM.';return}speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(queue[pos].text);utterance.lang='fr-FR';utterance.rate=.85;utterance.onerror=e=>{if(!['canceled','interrupted'].includes(e.error))$('feedback').textContent='Lecture audio indisponible. Vérifie le son ou passe au QCM.'};speechSynthesis.speak(utterance)}
+function renderWord(){answered=false;$('progress').textContent=`Mot ${pos+1} sur ${queue.length}`;$('score').textContent=`${score} / ${pos}`;$('bar').style.width=100*pos/queue.length+'%';let w=queue[pos];$('vocab-box').innerHTML=(w.hint?`<p class="note">Repère : ${esc(w.hint)}</p>`:'')+(mode==='qcm'?'<p class="question">Quelle est la bonne orthographe ?</p><div id="answers" class="answers"></div>':'<button class="audio-button" aria-label="Écouter le mot" onclick="speak()">🔊</button><form id="dictation"><label for="word-input" class="question">Écris ce que tu entends</label><input id="word-input" class="text-input big-input" required autocomplete="off" autocapitalize="off" spellcheck="false"><div class="actions"><button id="word-validate" class="primary">Valider</button></div></form>')+'<p id="feedback" class="feedback" aria-live="polite"></p><button id="next" class="primary hidden" onclick="nextWord()">Suivant →</button>';
+if(mode==='qcm'){shuffle([w.text,...w.wrong]).forEach(text=>{let b=document.createElement('button');b.className='answer';b.textContent=text;b.onclick=()=>answerWord(text,b);$('answers').append(b)})}else $('dictation').onsubmit=e=>{e.preventDefault();answerWord($('word-input').value)};}
+function answerWord(value,button){if(answered)return;answered=true;const w=queue[pos],ok=norm(value)===norm(w.text);if(ok)score++;else errors.push(w);if(mode==='qcm'){$('answers').querySelectorAll('button').forEach(b=>{b.disabled=true;if(norm(b.textContent)===norm(w.text))b.classList.add('correct')});if(!ok)button.classList.add('wrong')}else{$('word-input').disabled=true;$('word-input').classList.add(ok?'correct':'wrong');$('word-validate').disabled=true}$('feedback').textContent=ok?'✓ Bonne réponse !':'À retenir : '+w.text;$('score').textContent=`${score} / ${pos+1}`;$('bar').style.width=100*(pos+1)/queue.length+'%';$('next').textContent=pos===queue.length-1?'Voir mon résultat':'Suivant →';$('next').classList.remove('hidden')}
+function nextWord(){if(!answered)return;pos++;if(pos<queue.length){renderWord();return}if('speechSynthesis'in window)speechSynthesis.cancel();$('progress').textContent='Série terminée';$('vocab-box').innerHTML=`<p class="end-emoji">${errors.length?'💪':'🌟'}</p><h3>${score} / ${queue.length}</h3><p>${errors.length?'Relis les mots à revoir :':'Tous les mots sont justes !'}</p><p>${errors.map(w=>esc(w.text)).join(' · ')}</p><div class="actions"><button onclick="startVocab(mode)">Recommencer toute la liste</button>${errors.length?'<button id="retry-errors" class="primary">Revoir mes erreurs</button>':''}</div>`;if(errors.length)$('retry-errors').onclick=()=>startVocab(mode,[...errors]);record({activity:'Vocabulaire – '+DATA.theme,mode,score,maxScore:queue.length,details:{semaine:DATA.n,erreurs:errors.map(w=>w.text)}})}
+chooseVerb();startVocab('qcm');
+</script><script type="module">if(location.protocol!=='file:'&&!['localhost','127.0.0.1'].includes(location.hostname)) import('../suivi.js').catch(()=>{});</script></body></html>
