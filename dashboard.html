@@ -130,6 +130,24 @@ select{border:1px solid #dbe3f0;background:#fff;min-width:190px}
 
 @media(max-width:850px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}}
 @media(max-width:520px){.wrap{padding:14px}.grid{grid-template-columns:1fr 1fr}.metric .value{font-size:24px}}
+button:disabled{opacity:.5;cursor:not-allowed}
+.archive-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.archive-toolbar h2{margin-bottom:5px}.archive-toolbar p{margin:0;line-height:1.5}
+.archive-buttons{display:flex;gap:10px;flex-wrap:wrap}
+.day-group{margin:0 0 28px;padding:14px;border:1px solid #dce5f3;border-radius:16px;background:#fff}
+.day-group:last-child{margin-bottom:0}
+.day-heading{margin:-14px -14px 6px;padding:12px 14px;background:#edf3ff;border-bottom:1px solid #d5e1f5;border-radius:15px 15px 0 0;font-size:15px;text-transform:capitalize;color:#244c8c}
+.day-heading span{display:block;font-weight:500;font-size:12px;margin-top:3px;text-transform:none;color:var(--muted)}
+.history-panel{border:2px solid #dbe4f3;background:#f8faff}
+.history-panel>summary{cursor:pointer;font-size:20px;font-weight:900;padding:4px 0}
+.history-content{padding-top:18px}.history-content .two{align-items:start}
+.history-select{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 18px}
+.history-select select{max-width:100%;min-width:0}
+.period-label{font-size:13px;color:var(--muted);line-height:1.5}
+.archive-status:empty{display:none}.archive-status{margin:12px 0 0;font-size:14px;line-height:1.5}
+.archive-status.error{color:var(--red)}
+button:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+@media(max-width:520px){.day-group{padding:10px}.day-heading{margin:-10px -10px 6px}.archive-buttons button{width:100%}.history-select{align-items:stretch;flex-direction:column}}
 </style>
 </head>
 <body>
@@ -179,6 +197,18 @@ select{border:1px solid #dbe3f0;background:#fff;min-width:190px}
       </div>
     </section>
 
+    <section class="card" aria-labelledby="currentTitle">
+      <div class="archive-toolbar">
+        <div><h2 class="section-title" id="currentTitle">Depuis le dernier archivage</h2>
+          <p id="periodLabel" class="period-label">Toutes les données sont affichées.</p></div>
+        <div class="archive-buttons">
+          <button id="archiveBtn" class="primary" disabled>📦 Archiver les données affichées</button>
+          <button id="unarchiveBtn" class="hidden" disabled>↩ Tout réafficher</button>
+        </div>
+      </div>
+      <p class="small">Les données archivées restent consultables par journée ci-dessous. L’archivage est partagé entre tes appareils.</p>
+      <p id="archiveStatus" class="archive-status" role="status" aria-live="polite"></p>
+    </section>
     <div class="grid">
       <div class="metric"><div id="mSessions" class="value">0</div><div class="label">SÉANCES</div></div>
       <div class="metric"><div id="mTime" class="value">0 min</div><div class="label">TEMPS ACTIF</div></div>
@@ -199,15 +229,24 @@ select{border:1px solid #dbe3f0;background:#fff;min-width:190px}
 
     <div class="two">
       <section class="card">
-        <h2 class="section-title">🕒 Dernières séances</h2>
+        <h2 class="section-title">🕒 Séances par journée</h2>
         <div id="sessionsList"></div>
       </section>
       <section class="card">
-        <h2 class="section-title">🎯 Derniers scores</h2>
+        <h2 class="section-title">🎯 Scores par journée</h2>
         <div id="attemptsList"></div>
       </section>
     </div>
 
+    <details id="archivePanel" class="card history-panel">
+      <summary id="archiveSummary">📦 Archives</summary>
+      <div class="history-content">
+        <p class="small">Choisis une journée pour revoir ses séances et ses scores archivés. Les nouveaux résultats restent dans la vue principale.</p>
+        <div class="history-select"><label for="archiveDate">Journée archivée</label><select id="archiveDate" disabled></select></div>
+        <p id="archiveMetrics" class="small"></p>
+        <div class="two"><section><h3 class="section-title">🕒 Séances archivées</h3><div id="archivedSessions"></div></section><section><h3 class="section-title">🎯 Scores archivés</h3><div id="archivedAttempts"></div></section></div>
+      </div>
+    </details>
     <section class="card">
       <h2 class="section-title">👥 Tous les utilisateurs</h2>
       <div id="allUsers" class="all-users"></div>
@@ -234,8 +273,10 @@ import {
   signInWithPopup, signOut, browserLocalPersistence, setPersistence
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import {
-  getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, writeBatch
+  getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, writeBatch, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+import { archiveSnapshot, partitionHistory, archiveDates, groupDays, dayKey, validArchive } from "./dashboard-history.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBSgvc4uZ1N1tiejwSRxlxjAwcjxuWu8UY",
@@ -255,6 +296,8 @@ const $ = id => document.getElementById(id);
 
 let profiles=[], sessions=[], attempts=[], selectedUid=null, unsubs=[];
 let modalResolver=null;
+let archiveStates={}, archiveDay="", archiveSaving=false, archiveMessage="", archiveError="";
+let dataReady={profiles:false,sessions:false,attempts:false,archives:false};
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 function tsMs(v){
@@ -264,7 +307,7 @@ function tsMs(v){
 }
 function fmtDate(v){
   const ms=tsMs(v); if(!ms)return"—";
-  return new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"short"}).format(new Date(ms));
+  return new Intl.DateTimeFormat("fr-FR",{dateStyle:"short",timeStyle:"short",timeZone:"Europe/Paris"}).format(new Date(ms));
 }
 function fmtDuration(sec){
   sec=Number(sec)||0;
@@ -351,14 +394,20 @@ function render(){
     ["mSessions","mAttempts"].forEach(id=>$(id).textContent="0");
     $("mTime").textContent="0 min"; $("mAvg").textContent="—";
     $("subjectsList").innerHTML=$("errorsList").innerHTML=$("sessionsList").innerHTML=$("attemptsList").innerHTML='<div class="empty">Aucune donnée.</div>';
+    renderArchive(null,{current:{sessions:[],attempts:[]},archived:{sessions:[],attempts:[]}});
+    ["renameBtn","mergeBtn","toggleRoleBtn","deleteBtn"].forEach(id=>$(id).classList.add("hidden"));
+    $("userMeta").textContent=""; $("activeBadge").textContent="—";
+    $("adminAvatar").classList.add("hidden"); $("adminAvatarPlaceholder").classList.remove("hidden");
     renderAllUsers();
     return;
   }
 
-  const us=sessionsForGroup(g);
-  const ua=attemptsForGroup(g);
-  const active=us.some(isActive);
-  const lastS=[...us].sort((a,b)=>tsMs(b.lastSeenAt)-tsMs(a.lastSeenAt))[0];
+  const allSessions=sessionsForGroup(g), allAttempts=attemptsForGroup(g);
+  const history=partitionHistory(allSessions,allAttempts,archiveStates);
+  const us=history.current.sessions, ua=history.current.attempts;
+  renderArchive(g,history);
+  const active=allSessions.some(isActive);
+  const lastS=[...allSessions].sort((a,b)=>tsMs(b.lastSeenAt)-tsMs(a.lastSeenAt))[0];
 
   $("userName").textContent=g.name||"Sans nom";
   $("userMeta").textContent=`Dernière activité : ${fmtDate(lastS?.lastSeenAt||g.lastSeen)} · rôle : ${g.role||"eleve"} · ${g.members.length} appareil${g.members.length>1?"s":""}`;
@@ -410,20 +459,63 @@ function render(){
   const top=[...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12);
   $("errorsList").innerHTML=top.length?`<div class="badwords">${top.map(([w,n])=>`<span class="word">${esc(w)}${n>1?" ×"+n:""}</span>`).join("")}</div>`:'<div class="empty">Rien à signaler pour le moment 👌</div>';
 
-  const ss=[...us].sort((a,b)=>tsMs(b.startedAt)-tsMs(a.startedAt)).slice(0,12);
-  $("sessionsList").innerHTML=ss.length?ss.map(s=>`
-    <div class="session-row">
-      <div><div class="name">${esc(s.activity||"Révisions")}</div><div class="small">${esc(s.subject||"")} · ${fmtDate(s.startedAt)} · ${fmtDuration(s.activeSeconds)}</div></div>
-      <span class="pill ${isActive(s)?"active":""}">${isActive(s)?"🟢 EN COURS":"terminée"}</span>
-    </div>`).join(""):'<div class="empty">Aucune séance.</div>';
-
-  const aa=[...ua].sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt)).slice(0,15);
-  $("attemptsList").innerHTML=aa.length?aa.map(a=>`
-    <div class="attempt"><div><div class="name">${esc(a.activity||"")}</div><div class="small">${esc(a.subject||"")} · ${fmtDate(a.createdAt)}</div></div><div class="score">${Number(a.score)||0}/${Number(a.maxScore)||0}</div></div>
-  `).join(""):'<div class="empty">Aucun score.</div>';
+  $("sessionsList").innerHTML=renderDays(us,"sessions");
+  $("attemptsList").innerHTML=renderDays(ua,"attempts");
 
   renderAllUsers();
 }
+
+function renderDays(rows,kind){
+  if(!rows.length)return '<div class="empty">'+(kind==='sessions'?'Aucune séance dans cette période.':'Aucun score dans cette période.')+'</div>';
+  return groupDays(rows).map(day=>`<section class="day-group"><h3 class="day-heading">${esc(day.label)}<span>${day.rows.length} ${kind==='sessions'?'séance(s)':'tentative(s)'}</span></h3>${day.rows.map(row=>kind==='sessions'?`
+    <div class="session-row"><div><div class="name">${esc(row.activity||"Révisions")}</div><div class="small">${esc(row.subject||"")} · ${fmtDate(row.displayAt)} · ${fmtDuration(row.activeSeconds)}${row.continued?' · temps ajouté depuis l’archivage':''}</div></div><span class="pill ${!row.archived&&isActive(row)?'active':''}">${row.archived?'archivée':isActive(row)?'🟢 EN COURS':'terminée'}</span></div>`:`
+    <div class="attempt"><div><div class="name">${esc(row.activity||"Révisions")}</div><div class="small">${esc(row.subject||"")} · ${fmtDate(row.displayAt)}</div></div><div class="score">${Number(row.score)||0}/${Number(row.maxScore)||0}</div></div>`).join('')}</section>`).join('');
+}
+function renderArchive(group,history){
+  const states=(group?.members||[]).map(m=>archiveStates[m.id]).filter(validArchive);
+  const dates=archiveDates(history.archived);
+  const ready=Object.values(dataReady).every(Boolean)&&!archiveError;
+  $('archiveBtn').disabled=!group||!ready||archiveSaving||!(history.current.sessions.length+history.current.attempts.length);
+  $('archiveBtn').textContent=archiveSaving?'Enregistrement…':'📦 Archiver les données affichées';
+  $('unarchiveBtn').classList.toggle('hidden',!states.length);
+  $('unarchiveBtn').disabled=!ready||archiveSaving;
+  $('currentTitle').textContent=states.length?'Depuis le dernier archivage':'Résultats à consulter';
+  $('periodLabel').textContent=!states.length?'Toutes les données sont affichées.':`Dernier archivage : ${fmtDate(Math.max(...states.map(s=>s.cutoffMs)))}. Les compteurs ci-dessous portent sur les données non archivées.`;
+  $('archiveStatus').textContent=archiveError||archiveMessage||(!ready?'Synchronisation en cours…':'');
+  $('archiveStatus').classList.toggle('error',Boolean(archiveError));
+  $('archiveSummary').textContent=`📦 Archives · ${dates.length} journée${dates.length>1?'s':''}`;
+  if(!dates.some(d=>d.key===archiveDay))archiveDay=dates[0]?.key||'';
+  const options=dates.length?dates.map(d=>`<option value="${d.key}" ${d.key===archiveDay?'selected':''}>${esc(d.label)}</option>`).join(''):'<option>Aucune journée archivée</option>';
+  // Do not replace the native selector while it is being used during live updates.
+  if(document.activeElement!==$('archiveDate')&&$('archiveDate').innerHTML!==options)$('archiveDate').innerHTML=options;
+  $('archiveDate').disabled=!dates.length;
+  const ss=history.archived.sessions.filter(s=>dayKey(s.displayAt)===archiveDay),aa=history.archived.attempts.filter(a=>dayKey(a.displayAt)===archiveDay);
+  const scores=aa.map(a=>Number(a.percentage)).filter(Number.isFinite);
+  $('archiveMetrics').textContent=dates.length?`${ss.length} séance(s) · ${fmtDuration(ss.reduce((n,s)=>n+(Number(s.activeSeconds)||0),0))} · ${aa.length} tentative(s)${scores.length?' · moyenne : '+Math.round(scores.reduce((a,b)=>a+b,0)/scores.length)+' %':''}`:'Aucune donnée archivée pour ce profil.';
+  $('archivedSessions').innerHTML=renderDays(ss,'sessions');
+  $('archivedAttempts').innerHTML=renderDays(aa,'attempts');
+}
+$('archiveDate').onchange=e=>{archiveDay=e.target.value;render()};
+async function saveArchive(reset=false){
+  const group=selectedGroup();
+  if(!group||archiveSaving||archiveError||!Object.values(dataReady).every(Boolean))return;
+  const cutoff=Date.now(),source=sessionsForGroup(group);
+  archiveSaving=true;archiveMessage='';render();
+  try{
+    const batch=writeBatch(db);
+    for(const member of group.members){
+      const state=reset?{version:1,cutoffMs:0,baselines:{}}:archiveSnapshot(source.filter(s=>s.uid===member.id),cutoff);
+      batch.set(doc(db,'adminArchives',member.id),{...state,updatedAt:serverTimestamp()});
+    }
+    await batch.commit();
+    archiveMessage=selectedUid!==group.id?'':reset?'Toutes les données sont de nouveau affichées.':`Les données de ${group.name} sont archivées. Les nouveaux résultats s’afficheront au-dessus.`;
+  }catch(error){
+    console.error(error);
+    archiveMessage='L’enregistrement a échoué. Aucune donnée n’a été supprimée. Vérifie la connexion et les règles Firestore, puis réessaie.';
+  }finally{archiveSaving=false;render()}
+}
+$('archiveBtn').onclick=()=>saveArchive();
+$('unarchiveBtn').onclick=()=>saveArchive(true);
 
 function renderAllUsers(){
   const list=visibleGroups().sort((a,b)=>b.lastSeen-a.lastSeen);
@@ -440,22 +532,36 @@ function renderAllUsers(){
   }).join(""):'<div class="empty">Aucun utilisateur.</div>';
 
   document.querySelectorAll(".user-mini").forEach(el=>el.onclick=()=>{
-    selectedUid=el.dataset.uid; $("userSelect").value=selectedUid; render();
+    selectedUid=el.dataset.uid; archiveDay=""; archiveMessage=""; $("userSelect").value=selectedUid; render();
   });
 }
 
 function startRealtime(){
   unsubs.forEach(u=>u());unsubs=[];
-  const onErr=e=>{console.error(e);$("loginStatus").innerHTML=`<div class="status err">${esc(e.message||e)}</div>`};
-  unsubs.push(onSnapshot(collection(db,"profiles"),s=>{profiles=s.docs.map(d=>({id:d.id,...d.data()}));render()},onErr));
-  unsubs.push(onSnapshot(collection(db,"sessions"),s=>{sessions=s.docs.map(d=>({id:d.id,...d.data()}));render()},onErr));
-  unsubs.push(onSnapshot(collection(db,"attempts"),s=>{attempts=s.docs.map(d=>({id:d.id,...d.data()}));render()},onErr));
+  archiveStates={};archiveDay="";archiveError="";archiveMessage="";
+  profiles=[];sessions=[];attempts=[];
+  dataReady={profiles:false,sessions:false,attempts:false,archives:false};
+  const watch=(name,key,receive)=>{
+    unsubs.push(onSnapshot(collection(db,name),{includeMetadataChanges:true},snapshot=>{
+      dataReady[key]=!snapshot.metadata.fromCache&&!snapshot.metadata.hasPendingWrites;
+      receive(snapshot.docs.map(d=>({id:d.id,...d.data()})));
+      render();
+    },error=>{
+      console.error(error);dataReady[key]=false;
+      archiveError=key==="archives"?"L’archivage synchronisé est indisponible. Vérifie que les nouvelles règles Firestore ont été publiées, puis recharge la page.":"La synchronisation des résultats est interrompue. Recharge la page avant d’archiver.";
+      render();
+    }));
+  };
+  watch("profiles","profiles",rows=>profiles=rows);
+  watch("sessions","sessions",rows=>sessions=rows);
+  watch("attempts","attempts",rows=>attempts=rows);
+  watch("adminArchives","archives",rows=>archiveStates=Object.fromEntries(rows.map(row=>[row.id,row])));
 }
 
 await setPersistence(auth,browserLocalPersistence);
 $("googleBtn").onclick=async()=>{try{await signInWithPopup(auth,provider)}catch(e){$("loginStatus").innerHTML=`<div class="status err">${esc(e.message||e)}</div>`}};
 $("logoutBtn").onclick=()=>signOut(auth);
-$("userSelect").onchange=e=>{selectedUid=e.target.value;render()};
+$("userSelect").onchange=e=>{selectedUid=e.target.value;archiveDay="";archiveMessage="";render()};
 $("hideTests").onchange=()=>render();
 
 $("toggleRoleBtn").onclick=async()=>{
@@ -530,6 +636,7 @@ $("deleteBtn").onclick=async()=>{
   try{
     const refs=[
       ...g.members.map(m=>doc(db,"profiles",m.id)),
+      ...g.members.filter(m=>archiveStates[m.id]).map(m=>doc(db,"adminArchives",m.id)),
       ...us.map(s=>doc(db,"sessions",s.id)),
       ...ua.map(a=>doc(db,"attempts",a.id))
     ];
@@ -545,6 +652,7 @@ $("deleteBtn").onclick=async()=>{
 onAuthStateChanged(auth,user=>{
   if(!user){
     unsubs.forEach(u=>u());unsubs=[];
+    profiles=[];sessions=[];attempts=[];archiveStates={};selectedUid=null;
     $("loginCard").classList.remove("hidden");
     $("dashboard").classList.add("hidden");
     $("adminActions").classList.add("hidden");

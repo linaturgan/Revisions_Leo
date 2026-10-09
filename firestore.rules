@@ -80,6 +80,19 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Administrator-only display preferences. No session or score is changed.
+    match /adminArchives/{profileUid} {
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasAll(['version', 'cutoffMs', 'baselines', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['version', 'cutoffMs', 'baselines', 'updatedAt'])
+        && request.resource.data.version == 1
+        && request.resource.data.cutoffMs is number
+        && request.resource.data.cutoffMs >= 0
+        && request.resource.data.baselines is map
+        && request.resource.data.updatedAt == request.time;
+    }
+
     match /sessions/{sessionId} {
       allow create: if signedIn()
         && request.resource.data.uid == request.auth.uid;
